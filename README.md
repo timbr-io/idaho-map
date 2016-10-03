@@ -1,6 +1,6 @@
-# Jupyter GlMap Components 
+# IDAHO Map 
 
-React components for jupyter-map-gl that can be used in different places.
+A visualization for selecting and process IDAHO Imagery from GBDX 
 
 ## Install 
 
