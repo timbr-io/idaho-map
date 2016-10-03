@@ -29,7 +29,7 @@ setup(name='idaho-map',
       author='Chris Helm',
       author_email='chelm@timbr.io',
       license='MIT',
-      packages=['jupyter_map_gl'],
+      packages=['idaho_map'],
       zip_safe=False,
       data_files=[
         ('share/jupyter/nbextensions/idaho_map', [
