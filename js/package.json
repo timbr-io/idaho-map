@@ -1,5 +1,5 @@
 {
-  "name": "jupyter-glmap-components",
+  "name": "idaho-map",
   "version": "0.0.1",
   "description": "small react components used in jupyter-map-gl",
   "main": "index.js",

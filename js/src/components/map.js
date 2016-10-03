@@ -6,7 +6,7 @@ import rasterTileStyle from 'raster-tile-style';
 import Immutable from 'immutable';
 import autobind from 'autobind-decorator';
 
-class GlMap extends React.Component {
+class Map extends React.Component {
 
   constructor( props ) {
     super( props );
@@ -54,7 +54,7 @@ class GlMap extends React.Component {
     } 
 
     dispatcher.register( payload => {
-      if ( payload.actionType === 'glmap_update' ) {
+      if ( payload.actionType === 'map_update' ) {
         const { data = {} } = payload;
         if ( data.features && data.layerId ) {
           this._updateFeatures( data.layerId, data.features );
@@ -129,4 +129,4 @@ class GlMap extends React.Component {
   }
 }
 
-export default GlMap;
+export default Map;

@@ -1,11 +1,11 @@
 from jupyter_react import Component
 
-class GlMap(Component):
-    module = 'GlMap'
+class Map(Component):
+    module = 'Map'
     features = []
 
     def __init__(self, **kwargs):
-        super(GlMap, self).__init__(target_name='react.gl', props=kwargs.get('props', {}))
+        super(Map, self).__init__(target_name='idaho.map', props=kwargs.get('props', {}))
         self.layers = self.props.get('layers', [])
         self.on_msg(self._handle_msg)
 

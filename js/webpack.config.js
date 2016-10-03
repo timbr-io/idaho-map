@@ -16,7 +16,7 @@ module.exports = [
       entry: './src/index.js',
       output: {
           filename: 'index.js',
-          path: './',
+          path: '../idaho_map/static',
           libraryTarget: 'umd'
       },
       resolve: {
@@ -26,9 +26,6 @@ module.exports = [
           'mapbox-gl': path.resolve('./node_modules/mapbox-gl') //dist/mapbox-gl.js')
         }
       },
-      externals: [
-        { react: 'react' }
-      ],
       module : {
         loaders : [
           {
