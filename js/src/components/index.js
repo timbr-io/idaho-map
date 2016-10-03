@@ -1,5 +1,5 @@
-import GlMap from './GlMap.js';
+import Map from './map.js';
 
 export default {
-  GlMap
+  Map
 };
