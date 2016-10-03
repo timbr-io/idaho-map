@@ -1,10 +1,11 @@
 import JupyterReact from 'jupyter-react-js';
 import components from './components'; 
+import dispatcher from './components/dispatcher'; 
 import react from 'react';
 import reactDom from 'react-dom';
 
 const on_update = ( module, props ) => {
-  components.dispatcher.dispatch({
+  dispatcher.dispatch({
     actionType: module.toLowerCase() + '_update',
     data: props 
   });
