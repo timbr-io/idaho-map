@@ -5,6 +5,7 @@ import dispatcher from './dispatcher.js';
 import autobind from 'autobind-decorator';
 import rtree from 'rtree';
 import tilebelt from 'tilebelt';
+import Slider from './slider';
 
 import css from './css/map.css';
 
@@ -49,7 +50,7 @@ class IdahoMap extends React.Component {
   }
 
   componentWillMount(){
-    const { features = [] } = this.props; 
+    const { features = [] } = this.props;
 
     if ( features.length ) {
       const dates = features.map( feature => feature.properties.acquisitionDate );
@@ -85,9 +86,9 @@ class IdahoMap extends React.Component {
     const _features = this.state.features.concat( newFeatures );
 
     const dates = _features.map( feature => new Date( feature.properties.acquisitionDate ) );
-    const _min = new Date( Math.min.apply( null, dates ) ); 
+    const _min = new Date( Math.min.apply( null, dates ) );
     const _max = new Date( Math.max.apply( null, dates ) );
-    
+
     this.setState( { features: _features, minDate: _min, maxDate: _max } );
   }
 
@@ -215,16 +216,16 @@ class IdahoMap extends React.Component {
   }
 
   render() {
-    const { 
+    const {
       minDate,
       maxDate,
       features,
       selectedTiles,
-      width, 
-      height, 
-      zoom, 
+      width,
+      height,
+      zoom,
       baseLayer: { url, attribution },
-      latitude, 
+      latitude,
       longitude } = this.state;
 
     const position = [latitude, longitude];
@@ -245,6 +246,7 @@ class IdahoMap extends React.Component {
             <CanvasLayer { ...this.props } draw={ this.draw } />
             { selectedTiles.length && <CanvasLayer { ...this.props } draw={ this.drawSelected } /> }
           </Map>
+          <Slider { ...this.props } width={ width } />
         </div>
         <div className={css.footer}>
           <div className={'slider'}></div>
