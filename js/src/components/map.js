@@ -219,6 +219,8 @@ class IdahoMap extends React.Component {
     const {
       minDate,
       maxDate,
+      userMinDate,
+      userMaxDate,
       features,
       selectedTiles,
       width,
@@ -229,10 +231,8 @@ class IdahoMap extends React.Component {
       longitude } = this.state;
 
     const position = [latitude, longitude];
-
-    if ( minDate && maxDate && minDate !== maxDate ) {
-      console.log( minDate, maxDate );
-    }
+    
+    const chips = selectedTiles.map( tile => ( { [ tile ]: this.renderedChips[ tile ] } ) );
 
     return (
       <div>
@@ -246,7 +246,9 @@ class IdahoMap extends React.Component {
             <CanvasLayer { ...this.props } draw={ this.draw } />
             { selectedTiles.length && <CanvasLayer { ...this.props } draw={ this.drawSelected } /> }
           </Map>
-          <Slider { ...this.props } width={ width } />
+          { minDate && maxDate && minDate !== maxDate &&
+            <Slider { ...this.props } minDate={ minDate } maxDate={ maxDate } userMinDate={ userMinDate } userMaxDate={ userMaxDate } width={ width } />
+          }
         </div>
         <div className={css.footer}>
           <div className={'slider'}></div>
