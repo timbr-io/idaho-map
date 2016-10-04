@@ -907,7 +907,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          { className: 'row' },
 	          _react2.default.createElement(
 	            _reactLeaflet.Map,
-	            { center: position, zoom: zoom, style: { width: width, height: height }, onClick: this.onClick },
+	            { center: position, zoom: zoom, style: { height: height }, onClick: this.onClick },
 	            _react2.default.createElement(_reactLeaflet.TileLayer, {
 	              url: url,
 	              attribution: attribution
