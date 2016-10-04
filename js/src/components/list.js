@@ -4,34 +4,48 @@ import autobind from 'autobind-decorator';
 @autobind
 export default class List extends React.Component {
 
-  contructor( props ) {
+  constructor( props ) {
     super( props );
     this.state = {
       list: []
     };
   }
 
+  componentWillReceiveProps( nextProps ) {
+    if ( nextProps.chips !== this.state.list ) {
+      this.setState( { list: nextProps.chips } );
+    }
+  }
+
   onChange( item ) {
     const list = new Set( this.state.list );
-    let newList;
 
     if ( list.has( item ) ) {
-      newList = list.delete( item );
+      list.delete( item );
     } else {
-      newList = list.add( item );
+      list.add( item );
     }
 
-    this.setState( list: [ ...newList ] );
+    this.setState( { list: [ ...list ] } );
   }
 
   render() {
 
     return (
-      <ul>
-        { this.state.list.map( ( item, index ) => (
-          <li key={ 'li-' + index }>{/* whatever list info we want to display here */}</li>
-        ) ) }
-      </ul>
+      <div>
+        { this.state.list.length > 0 &&
+          <ul>
+            { this.state.list.map( ( item, index ) => {
+              const key = Object.keys( item )[0];
+              return (
+                <li key={ 'li-' + index }>
+                  <span>{ key + '    images: ' + item[ key ] }</span>
+                </li>
+              );
+            } ) }
+          </ul>
+        }
+      </div>
     );
   }
 }

@@ -6,6 +6,7 @@ import autobind from 'autobind-decorator';
 import rtree from 'rtree';
 import tilebelt from 'tilebelt';
 import Slider from './slider';
+import List from './list';
 
 import css from './css/map.css';
 
@@ -231,7 +232,7 @@ class IdahoMap extends React.Component {
       longitude } = this.state;
 
     const position = [latitude, longitude];
-    
+
     const chips = selectedTiles.map( tile => ( { [ tile ]: this.renderedChips[ tile ] } ) );
 
     return (
@@ -246,12 +247,14 @@ class IdahoMap extends React.Component {
             <CanvasLayer { ...this.props } draw={ this.draw } />
             { selectedTiles.length && <CanvasLayer { ...this.props } draw={ this.drawSelected } /> }
           </Map>
-          { minDate && maxDate && minDate !== maxDate &&
-            <Slider { ...this.props } minDate={ minDate } maxDate={ maxDate } userMinDate={ userMinDate } userMaxDate={ userMaxDate } width={ width } />
-          }
+          <List { ...this.props } chips={ chips } />
         </div>
         <div className={css.footer}>
-          <div className={'slider'}></div>
+          { minDate && maxDate && minDate !== maxDate &&
+            <div className={'slider'}>
+             <Slider { ...this.props } minDate={ minDate } maxDate={ maxDate } userMinDate={ userMinDate } userMaxDate={ userMaxDate } width={ width } />
+           </div>
+          }
           <div className={css.button}>Process</div>
         </div>
       </div>
