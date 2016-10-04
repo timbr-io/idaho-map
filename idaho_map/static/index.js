@@ -636,7 +636,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var _this = _possibleConstructorReturn(this, (IdahoMap.__proto__ || Object.getPrototypeOf(IdahoMap)).call(this, props));
 
 	    _this.tree = (0, _rtree2.default)(9);
+	    _this.renderedChips = {};
 	    _this.state = {
+	      minDate: null,
+	      maxDate: null,
 	      selectedTiles: [],
 	      features: [],
 	      width: 500,
@@ -670,8 +673,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function componentWillMount() {
 	      var _this2 = this;
 
+	      var _props$features = this.props.features;
+	      var features = _props$features === undefined ? [] : _props$features;
+
+
+	      if (features.length) {
+	        var dates = features.map(function (feature) {
+	          return feature.properties.acquisitionDate;
+	        });
+	        this.props.minDate = Math.min(dates);
+	        this.props.maxDate = Math.max(dates);
+	        this._indexFeatures(features);
+	      }
+
 	      this._updateState(this.props);
-	      this._indexFeatures(this.props.features);
+
 	      _dispatcher2.default.register(function (payload) {
 	        if (payload.actionType === 'map_update') {
 	          var _payload$data = payload.data;
@@ -684,6 +700,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
+	    key: '_updateDates',
+	    value: function _updateDates(dates) {}
+	  }, {
 	    key: '_updateState',
 	    value: function _updateState(props) {
 	      this.setState(_extends({}, props));
@@ -693,7 +712,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: '_updateFeatures',
 	    value: function _updateFeatures(newFeatures) {
 	      this._indexFeatures(newFeatures);
-	      this.setState({ features: this.state.features.concat(newFeatures) });
+
+	      var _features = this.state.features.concat(newFeatures);
+
+	      var dates = _features.map(function (feature) {
+	        return new Date(feature.properties.acquisitionDate);
+	      });
+	      var _min = new Date(Math.min.apply(null, dates));
+	      var _max = new Date(Math.max.apply(null, dates));
+
+	      this.setState({ features: _features, minDate: _min, maxDate: _max });
 	    }
 	  }, {
 	    key: 'updatePython',
@@ -702,10 +730,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'onClick',
-	    value: function onClick() {
-	      console.log(arguments);
-	      // dispatch event? 
-	      console.log(this._map);
+	    value: function onClick(loc) {
+	      var xyz = _tilebelt2.default.pointToTile(loc.latlng.lng, loc.latlng.lat, 15).join(',');
+	      var chips = this.renderedChips[xyz];
+	      if (chips && !~this.state.selectedTiles.indexOf(xyz)) {
+	        this.setState({ selectedTiles: [].concat(_toConsumableArray(this.state.selectedTiles), [xyz]) });
+	      } else {
+	        this.setState({ selectedTiles: [].concat(_toConsumableArray(this.state.selectedTiles.filter(function (t) {
+	            return t != xyz;
+	          }))) });
+	      }
 	    }
 	  }, {
 	    key: '_bboxToTiles',
@@ -732,13 +766,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else if (zoom <= 8) {
 	        this._renderBox(feature, ctx, map);
 	      } else if (zoom > 8) {
-	        //this._renderBox( feature, ctx, map );
 	        var coords = feature.geometry.coordinates;
 	        var bbox = [].concat(_toConsumableArray(coords[0][0]), _toConsumableArray(coords[0][2]));
 	        var tiles = this._bboxToTiles(bbox, 15);
 	        tiles.forEach(function (tile) {
 	          var bbox = _tilebelt2.default.tileToBBOX(tile);
-	          _this3._renderChip(tile, bbox, ctx, map);
+	          _this3._renderChip(tile, bbox, feature, ctx, map);
 	        });
 	      }
 	    }
@@ -766,15 +799,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: '_renderChip',
-	    value: function _renderChip(tile, bbox, ctx, map) {
+	    value: function _renderChip(tile, bbox, feature, ctx, map) {
 	      var ul = map.latLngToContainerPoint([bbox[3], bbox[0]]);
 	      var lr = map.latLngToContainerPoint([bbox[1], bbox[2]]);
-	      ctx.strokeStyle = 'rgb(255, 255, 255, 0.1)';
+	      ctx.strokeStyle = 'rgba(0, 136, 204, 0.2)';
 	      ctx.lineWidth = 0.5;
 	      ctx.beginPath();
 	      ctx.rect(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
 	      ctx.stroke();
 	      ctx.closePath();
+	      this._trackChip(tile.join(','), feature);
+	    }
+	  }, {
+	    key: '_trackChip',
+	    value: function _trackChip(xyz, feature) {
+	      if (!this.renderedChips[xyz]) {
+	        this.renderedChips[xyz] = 0;
+	      }
+	      this.renderedChips[xyz] += 1;
 	    }
 	  }, {
 	    key: 'draw',
@@ -790,8 +832,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
 	      var points = (_tree = this.tree).bbox.apply(_tree, bbox);
 
+	      this.renderedChips = {};
+
 	      if (points.length) {
-	        ctx.fillStyle = "rgb(0,136,204, 0.5)";
+	        ctx.fillStyle = "rgba(0,136,204, 0.5)";
 	        ctx.strokeStyle = 'rgb(0,136,204)';
 	        ctx.lineWidth = 1;
 	        points.forEach(function (pnt) {
@@ -800,10 +844,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
+	    key: 'drawSelected',
+	    value: function drawSelected(layer, params) {
+	      var ctx = params.canvas.getContext('2d');
+	      ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
+	      ctx.fillStyle = 'rgba( 200, 136, 204, 0.6 )';
+	      ctx.lineWidth = 1;
+
+	      var tiles = this.state.selectedTiles;
+	      tiles.forEach(function (tile) {
+	        var xyz = tile.split(',');
+	        var bbox = _tilebelt2.default.tileToBBOX([parseInt(xyz[0]), parseInt(xyz[1]), 15]);
+	        var ul = layer._map.latLngToContainerPoint([bbox[3], bbox[0]]);
+	        var lr = layer._map.latLngToContainerPoint([bbox[1], bbox[2]]);
+	        ctx.beginPath();
+	        ctx.rect(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
+	        ctx.fill();
+	        ctx.closePath();
+	      });
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
 	      var _state = this.state;
+	      var minDate = _state.minDate;
+	      var maxDate = _state.maxDate;
 	      var features = _state.features;
+	      var selectedTiles = _state.selectedTiles;
 	      var width = _state.width;
 	      var height = _state.height;
 	      var zoom = _state.zoom;
@@ -815,6 +882,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	      var position = [latitude, longitude];
+	      console.log(minDate, maxDate);
 	      return _react2.default.createElement(
 	        'div',
 	        null,
@@ -829,7 +897,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	              url: url,
 	              attribution: attribution
 	            }),
-	            _react2.default.createElement(_canvas_layer2.default, _extends({ features: features }, this.props, { draw: this.draw }))
+	            _react2.default.createElement(_canvas_layer2.default, _extends({}, this.props, { draw: this.draw })),
+	            selectedTiles.length && _react2.default.createElement(_canvas_layer2.default, _extends({}, this.props, { draw: this.drawSelected }))
 	          )
 	        ),
 	        _react2.default.createElement(
@@ -41838,7 +41907,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (map.options.zoomAnimation) {
 	            //map.off('zoomanim', this._animateZoom, this);
 	        }
-	        this_canvas = null;
+	        this._canvas = null;
 	    },
 
 	    addTo: function addTo(map) {

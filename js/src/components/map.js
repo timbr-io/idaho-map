@@ -12,11 +12,15 @@ import css from './css/map.css';
 class IdahoMap extends React.Component {
 
   tree: null
+  renderedChips: null
 
   constructor( props ) {
     super( props );
     this.tree = rtree( 9 );
+    this.renderedChips = {};
     this.state = {
+      minDate: null,
+      maxDate: null,
       selectedTiles: [],
       features: [],
       width: 500,
@@ -43,8 +47,17 @@ class IdahoMap extends React.Component {
   }
 
   componentWillMount(){
+    const { features = [] } = this.props; 
+
+    if ( features.length ) {
+      const dates = features.map( feature => feature.properties.acquisitionDate );
+      this.props.minDate = Math.min( dates );
+      this.props.maxDate = Math.max( dates );
+      this._indexFeatures( features );
+    }
+
     this._updateState( this.props );
-    this._indexFeatures( this.props.features );
+
     dispatcher.register( payload => {
       if ( payload.actionType === 'map_update' ) {
         const { data = {} } = payload;
@@ -55,6 +68,10 @@ class IdahoMap extends React.Component {
     } );
   }
 
+  _updateDates( dates ) {
+
+  }
+
   _updateState( props ) {
     this.setState( { ...props } );
     this.forceUpdate();
@@ -62,7 +79,14 @@ class IdahoMap extends React.Component {
 
   _updateFeatures( newFeatures ) {
     this._indexFeatures( newFeatures );
-    this.setState( { features: this.state.features.concat( newFeatures ) } );
+
+    const _features = this.state.features.concat( newFeatures );
+
+    const dates = _features.map( feature => new Date( feature.properties.acquisitionDate ) );
+    const _min = new Date( Math.min.apply( null, dates ) ); 
+    const _max = new Date( Math.max.apply( null, dates ) );
+    
+    this.setState( { features: _features, minDate: _min, maxDate: _max } );
   }
 
   @autobind
@@ -70,10 +94,14 @@ class IdahoMap extends React.Component {
     this.props.comm.send({ method: "update", data } );
   }
 
-  onClick() {
-    console.log(arguments);
-    // dispatch event? 
-    console.log(this._map);
+  onClick( loc ) {
+    const xyz = tilebelt.pointToTile( loc.latlng.lng, loc.latlng.lat, 15 ).join(',');
+    const chips = this.renderedChips[ xyz ];
+    if ( chips && !~this.state.selectedTiles.indexOf( xyz ) ) {
+      this.setState( { selectedTiles: [ ...this.state.selectedTiles, xyz ] } );
+    } else {
+      this.setState( { selectedTiles: [ ...this.state.selectedTiles.filter( t => t != xyz ) ] } );
+    }
   }
 
   _bboxToTiles( bbox, zoom ) {
@@ -96,13 +124,12 @@ class IdahoMap extends React.Component {
     } else if ( zoom <= 8 ){
       this._renderBox( feature, ctx, map );
     } else if ( zoom > 8 ) {
-      //this._renderBox( feature, ctx, map );
       const coords = feature.geometry.coordinates;
       const bbox = [ ...coords[0][ 0 ], ...coords[0][ 2 ] ];
       const tiles = this._bboxToTiles( bbox, 15 );
       tiles.forEach( tile => {
         const bbox = tilebelt.tileToBBOX( tile );
-        this._renderChip( tile, bbox, ctx, map );
+        this._renderChip( tile, bbox, feature, ctx, map );
       });
     }
   }
@@ -127,15 +154,23 @@ class IdahoMap extends React.Component {
     ctx.closePath();
   }
 
-  _renderChip( tile, bbox, ctx, map ) {
+  _renderChip( tile, bbox, feature, ctx, map ) {
     const ul = map.latLngToContainerPoint([bbox[3], bbox[0]]);
     const lr = map.latLngToContainerPoint([bbox[1], bbox[2]]);
-    ctx.strokeStyle = 'rgb(255, 255, 255, 0.1)';
+    ctx.strokeStyle = 'rgba(0, 136, 204, 0.2)';
     ctx.lineWidth = 0.5;
     ctx.beginPath();
     ctx.rect(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
     ctx.stroke();
     ctx.closePath();
+    this._trackChip( tile.join( ',' ), feature );
+  }
+
+  _trackChip( xyz, feature ) {
+    if ( !this.renderedChips[ xyz ] ) {
+      this.renderedChips[ xyz ] = 0;
+    }
+    this.renderedChips[ xyz ] += 1;
   }
 
   draw( layer, params ) {
@@ -146,8 +181,10 @@ class IdahoMap extends React.Component {
     const bbox = [ bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth() ];
     const points = this.tree.bbox( ...bbox );
 
+    this.renderedChips = {};
+
     if ( points.length ) {
-      ctx.fillStyle = "rgb(0,136,204, 0.5)";
+      ctx.fillStyle = "rgba(0,136,204, 0.5)";
       ctx.strokeStyle = 'rgb(0,136,204)';
       ctx.lineWidth = 1;
       points.forEach( pnt => {
@@ -156,9 +193,31 @@ class IdahoMap extends React.Component {
     }
   }
 
+  drawSelected( layer, params ) {
+    const ctx = params.canvas.getContext( '2d' );
+    ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
+    ctx.fillStyle = 'rgba( 200, 136, 204, 0.6 )';
+    ctx.lineWidth = 1;
+
+    const tiles = this.state.selectedTiles;
+    tiles.forEach( tile => {
+      const xyz = tile.split(',');
+      const bbox = tilebelt.tileToBBOX( [parseInt( xyz[ 0 ] ), parseInt(xyz[1]), 15] );
+      const ul = layer._map.latLngToContainerPoint([bbox[3], bbox[0]]);
+      const lr = layer._map.latLngToContainerPoint([bbox[1], bbox[2]]);
+      ctx.beginPath();
+      ctx.rect(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
+      ctx.fill();
+      ctx.closePath();
+    });
+  }
+
   render() {
     const { 
+      minDate,
+      maxDate,
       features,
+      selectedTiles,
       width, 
       height, 
       zoom, 
@@ -167,6 +226,7 @@ class IdahoMap extends React.Component {
       longitude } = this.state;
 
     const position = [latitude, longitude];
+    console.log( minDate, maxDate );
     return (
       <div>
         <div className={css.header} ></div>
@@ -176,7 +236,8 @@ class IdahoMap extends React.Component {
               url={ url }
               attribution={ attribution }
             />
-            <CanvasLayer features={ features } { ...this.props } draw={ this.draw } />
+            <CanvasLayer { ...this.props } draw={ this.draw } />
+            { selectedTiles.length && <CanvasLayer { ...this.props } draw={ this.drawSelected } /> }
           </Map>
         </div>
         <div className={css.footer}>
