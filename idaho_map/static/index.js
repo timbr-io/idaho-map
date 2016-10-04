@@ -638,6 +638,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this.tree = (0, _rtree2.default)(9);
 	    _this.renderedChips = {};
 	    _this.state = {
+	      userMinDate: null,
+	      userMaxDate: null,
 	      minDate: null,
 	      maxDate: null,
 	      selectedTiles: [],
@@ -882,7 +884,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	      var position = [latitude, longitude];
-	      console.log(minDate, maxDate);
+
+	      if (minDate && maxDate && minDate !== maxDate) {
+	        console.log(minDate, maxDate);
+	      }
+
 	      return _react2.default.createElement(
 	        'div',
 	        null,

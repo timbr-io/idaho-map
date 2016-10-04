@@ -19,6 +19,8 @@ class IdahoMap extends React.Component {
     this.tree = rtree( 9 );
     this.renderedChips = {};
     this.state = {
+      userMinDate: null,
+      userMaxDate: null,
       minDate: null,
       maxDate: null,
       selectedTiles: [],
@@ -226,7 +228,11 @@ class IdahoMap extends React.Component {
       longitude } = this.state;
 
     const position = [latitude, longitude];
-    console.log( minDate, maxDate );
+
+    if ( minDate && maxDate && minDate !== maxDate ) {
+      console.log( minDate, maxDate );
+    }
+
     return (
       <div>
         <div className={css.header} ></div>
