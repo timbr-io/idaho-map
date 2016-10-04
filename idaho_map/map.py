@@ -9,12 +9,8 @@ class Map(Component):
         self.layers = self.props.get('layers', [])
         self.on_msg(self._handle_msg)
 
-    def add_layer(self, layer):
-        self.layers[layer['id']] = layer;
-        self.send({ "method": "update", "props": {"layers": self.layers}} )
-
-    def add_features(self, layer_id, features):
-        self.send({ "method": "update", "props": {"layerId": layer_id, "features": features}})
+    def add_features(self, features):
+        self.send({ "method": "update", "props": {"features": features}})
 
     def _handle_msg(self, msg):
         data = msg['content']['data']

@@ -564,9 +564,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _reactLeaflet = __webpack_require__(37);
 
-	var _footprints = __webpack_require__(387);
+	var _canvas_layer = __webpack_require__(403);
 
-	var _footprints2 = _interopRequireDefault(_footprints);
+	var _canvas_layer2 = _interopRequireDefault(_canvas_layer);
 
 	var _dispatcher = __webpack_require__(395);
 
@@ -576,11 +576,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _autobindDecorator2 = _interopRequireDefault(_autobindDecorator);
 
+	var _rtree = __webpack_require__(388);
+
+	var _rtree2 = _interopRequireDefault(_rtree);
+
+	var _tilebelt = __webpack_require__(392);
+
+	var _tilebelt2 = _interopRequireDefault(_tilebelt);
+
 	var _map = __webpack_require__(399);
 
 	var _map2 = _interopRequireDefault(_map);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -625,7 +635,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var _this = _possibleConstructorReturn(this, (IdahoMap.__proto__ || Object.getPrototypeOf(IdahoMap)).call(this, props));
 
+	    _this.tree = (0, _rtree2.default)(9);
 	    _this.state = {
+	      selectedTiles: [],
 	      features: [],
 	      width: 500,
 	      height: 400,
@@ -641,25 +653,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  _createClass(IdahoMap, [{
+	    key: '_indexFeatures',
+	    value: function _indexFeatures(features) {
+	      this.tree.geoJSON({
+	        "type": "FeatureCollection",
+	        "features": features
+	      });
+	    }
+	  }, {
 	    key: 'componentWillReceiveProps',
 	    value: function componentWillReceiveProps(newProps) {
-	      console.log('new props');
 	      this._updateState(newProps);
 	    }
 	  }, {
 	    key: 'componentWillMount',
 	    value: function componentWillMount() {
+	      var _this2 = this;
+
 	      this._updateState(this.props);
-	      /*dispatcher.register( payload => {
-	        if ( payload.actionType === 'map_update' ) {
-	          const { data = {} } = payload;
-	          if ( data.features && data.layerId ) {
-	            this._updateFeatures( data.layerId, data.features );
-	          } else if ( data.layers ) { 
-	            this._updateLayers( data.layers );
+	      this._indexFeatures(this.props.features);
+	      _dispatcher2.default.register(function (payload) {
+	        if (payload.actionType === 'map_update') {
+	          var _payload$data = payload.data;
+	          var data = _payload$data === undefined ? {} : _payload$data;
+
+	          if (data.features) {
+	            _this2._updateFeatures(data.features);
 	          }
 	        }
-	      } );*/
+	      });
 	    }
 	  }, {
 	    key: '_updateState',
@@ -670,7 +692,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_updateFeatures',
 	    value: function _updateFeatures(newFeatures) {
-	      this.setState({ features: this.state.concat(newFeatures) });
+	      this._indexFeatures(newFeatures);
+	      this.setState({ features: this.state.features.concat(newFeatures) });
 	    }
 	  }, {
 	    key: 'updatePython',
@@ -682,6 +705,99 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function onClick() {
 	      console.log(arguments);
 	      // dispatch event? 
+	      console.log(this._map);
+	    }
+	  }, {
+	    key: '_bboxToTiles',
+	    value: function _bboxToTiles(bbox, zoom) {
+	      var tiles = [];
+	      var ll = _tilebelt2.default.pointToTile(bbox[0], bbox[1], zoom);
+	      var ur = _tilebelt2.default.pointToTile(bbox[2], bbox[3], zoom);
+
+	      for (var i = ll[0]; i < Math.min(ur[0] + 1, Math.pow(2, zoom)); i++) {
+	        for (var j = ur[1]; j < Math.min(ll[1] + 1, Math.pow(2, zoom)); j++) {
+	          tiles.push([i, j, zoom]);
+	        }
+	      }
+	      return tiles;
+	    }
+	  }, {
+	    key: '_renderFeature',
+	    value: function _renderFeature(feature, ctx, map) {
+	      var _this3 = this;
+
+	      var zoom = map.getZoom();
+	      if (zoom < 6) {
+	        this._renderPoint(feature, ctx, map);
+	      } else if (zoom <= 8) {
+	        this._renderBox(feature, ctx, map);
+	      } else if (zoom > 8) {
+	        //this._renderBox( feature, ctx, map );
+	        var coords = feature.geometry.coordinates;
+	        var bbox = [].concat(_toConsumableArray(coords[0][0]), _toConsumableArray(coords[0][2]));
+	        var tiles = this._bboxToTiles(bbox, 15);
+	        tiles.forEach(function (tile) {
+	          var bbox = _tilebelt2.default.tileToBBOX(tile);
+	          _this3._renderChip(tile, bbox, ctx, map);
+	        });
+	      }
+	    }
+	  }, {
+	    key: '_renderPoint',
+	    value: function _renderPoint(feature, ctx, map) {
+	      var coords = feature.properties.center.coordinates;
+	      var dot = map.latLngToContainerPoint([coords[1], coords[0]]);
+	      ctx.beginPath();
+	      ctx.arc(dot.x, dot.y, Math.max(3, Math.floor(map.getZoom() * .75)), 0, Math.PI * 2);
+	      ctx.stroke();
+	      ctx.closePath();
+	    }
+	  }, {
+	    key: '_renderBox',
+	    value: function _renderBox(feature, ctx, map) {
+	      var coords = feature.geometry.coordinates;
+	      var bbox = [].concat(_toConsumableArray(coords[0][0]), _toConsumableArray(coords[0][2]));
+	      var ul = map.latLngToContainerPoint([bbox[3], bbox[0]]);
+	      var lr = map.latLngToContainerPoint([bbox[1], bbox[2]]);
+	      ctx.beginPath();
+	      ctx.rect(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
+	      ctx.stroke();
+	      ctx.closePath();
+	    }
+	  }, {
+	    key: '_renderChip',
+	    value: function _renderChip(tile, bbox, ctx, map) {
+	      var ul = map.latLngToContainerPoint([bbox[3], bbox[0]]);
+	      var lr = map.latLngToContainerPoint([bbox[1], bbox[2]]);
+	      ctx.strokeStyle = 'rgb(255, 255, 255, 0.1)';
+	      ctx.lineWidth = 0.5;
+	      ctx.beginPath();
+	      ctx.rect(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
+	      ctx.stroke();
+	      ctx.closePath();
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw(layer, params) {
+	      var _tree,
+	          _this4 = this;
+
+	      var ctx = params.canvas.getContext('2d');
+	      ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
+
+	      var bounds = params.bounds;
+
+	      var bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
+	      var points = (_tree = this.tree).bbox.apply(_tree, bbox);
+
+	      if (points.length) {
+	        ctx.fillStyle = "rgb(0,136,204, 0.5)";
+	        ctx.strokeStyle = 'rgb(0,136,204)';
+	        ctx.lineWidth = 1;
+	        points.forEach(function (pnt) {
+	          _this4._renderFeature(pnt, ctx, layer._map);
+	        });
+	      }
 	    }
 	  }, {
 	    key: 'render',
@@ -698,8 +814,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var longitude = _state.longitude;
 
 
-	      var position = [longitude, latitude];
-
+	      var position = [latitude, longitude];
 	      return _react2.default.createElement(
 	        'div',
 	        null,
@@ -714,7 +829,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              url: url,
 	              attribution: attribution
 	            }),
-	            _react2.default.createElement(_footprints2.default, { features: features })
+	            _react2.default.createElement(_canvas_layer2.default, _extends({ features: features }, this.props, { draw: this.draw }))
 	          )
 	        ),
 	        _react2.default.createElement(
@@ -39726,258 +39841,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = ZoomControl;
 
 /***/ },
-/* 387 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.default = undefined;
-
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _desc, _value, _class;
-
-	var _react = __webpack_require__(4);
-
-	var _react2 = _interopRequireDefault(_react);
-
-	var _rtree = __webpack_require__(388);
-
-	var _rtree2 = _interopRequireDefault(_rtree);
-
-	var _tilebelt = __webpack_require__(392);
-
-	var _tilebelt2 = _interopRequireDefault(_tilebelt);
-
-	var _autobindDecorator = __webpack_require__(393);
-
-	var _autobindDecorator2 = _interopRequireDefault(_autobindDecorator);
-
-	var _canvas_tile_layer = __webpack_require__(394);
-
-	var _canvas_tile_layer2 = _interopRequireDefault(_canvas_tile_layer);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
-	  var desc = {};
-	  Object['ke' + 'ys'](descriptor).forEach(function (key) {
-	    desc[key] = descriptor[key];
-	  });
-	  desc.enumerable = !!desc.enumerable;
-	  desc.configurable = !!desc.configurable;
-
-	  if ('value' in desc || desc.initializer) {
-	    desc.writable = true;
-	  }
-
-	  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
-	    return decorator(target, property, desc) || desc;
-	  }, desc);
-
-	  if (context && desc.initializer !== void 0) {
-	    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
-	    desc.initializer = undefined;
-	  }
-
-	  if (desc.initializer === void 0) {
-	    Object['define' + 'Property'](target, property, desc);
-	    desc = null;
-	  }
-
-	  return desc;
-	}
-
-	var Footprints = (_class = function (_Component) {
-	  _inherits(Footprints, _Component);
-
-	  function Footprints(props) {
-	    _classCallCheck(this, Footprints);
-
-	    var _this = _possibleConstructorReturn(this, (Footprints.__proto__ || Object.getPrototypeOf(Footprints)).call(this, props));
-
-	    _this.tree = (0, _rtree2.default)(9);
-	    _this.state = {
-	      selectedTiles: []
-	    };
-	    return _this;
-	  }
-
-	  _createClass(Footprints, [{
-	    key: 'componentWillReceiveProps',
-	    value: function componentWillReceiveProps(newProps) {
-	      if (this.props.features && this.props.features.length < newProps.features.length) {
-	        var newFeatures = newProps.features.slice(this.props.features.length - 1, -1);
-	        this._indexFeatures(newFeatures);
-	      }
-	    }
-	  }, {
-	    key: 'componentWillMount',
-	    value: function componentWillMount() {
-	      this._indexFeatures(this.props.features);
-	    }
-	  }, {
-	    key: '_indexFeatures',
-	    value: function _indexFeatures(features) {
-	      this.tree.geoJSON({
-	        "type": "FeatureCollection",
-	        "features": features
-	      });
-	    }
-
-	    // project center to pxy, find min/max pixel xy, unproject to lat/lon
-
-	  }, {
-	    key: '_getBounds',
-	    value: function _getBounds(center, width, height, project, unproject) {
-	      var xy = project(center);
-	      var ul = unproject([xy[0] - width / 2, xy[1] - height / 2]);
-	      var lr = unproject([xy[0] + width / 2, xy[1] + height / 2]);
-	      return [ul[0], lr[1], lr[0], ul[1]];
-	    }
-	  }, {
-	    key: '_redraw',
-	    value: function _redraw(opts) {
-	      var _this2 = this;
-
-	      var ctx = opts.ctx;
-	      var project = opts.project;
-	      var unproject = opts.unproject;
-	      var width = opts.width;
-	      var height = opts.height;
-
-	      opts.ctx.clearRect(0, 0, width, height);
-
-	      if (!opts.isDragging) {
-	        (function () {
-	          var _tree;
-
-	          var _props = _this2.props;
-	          var longitude = _props.longitude;
-	          var latitude = _props.latitude;
-	          var _props$fill = _props.fill;
-	          var fill = _props$fill === undefined ? '#1FBAD6' : _props$fill;
-	          var _props$stroke = _props.stroke;
-	          var stroke = _props$stroke === undefined ? '#ffffff' : _props$stroke;
-	          var _props$strokeWidth = _props.strokeWidth;
-	          var strokeWidth = _props$strokeWidth === undefined ? 1 : _props$strokeWidth;
-	          var zoom = _props.zoom;
-
-	          var bounds = _this2._getBounds([longitude, latitude], width, height, project, unproject);
-	          var points = (_tree = _this2.tree).bbox.apply(_tree, _toConsumableArray(bounds));
-	          if (points.length) {
-	            (function () {
-	              ctx.strokeStyle = stroke;
-	              ctx.lineWidth = strokeWidth;
-	              ctx.fillStyle = fill;
-	              var tiles = [];
-	              points.forEach(function (pnt) {
-	                var pntTiles = _this2._renderGeom(pnt, ctx, zoom, project, width, height);
-	                pntTiles.forEach(function (pTile) {
-	                  return tiles.push(pTile);
-	                });
-	              });
-	              _this2.props.notify({ features: tiles });
-	            })();
-	          } else {
-	            _this2.props.notify({ features: [] });
-	          }
-	        })();
-	      }
-	    }
-	  }, {
-	    key: '_bboxToTiles',
-	    value: function _bboxToTiles(bbox, zoom) {
-	      var tiles = [];
-	      var ll = _tilebelt2.default.pointToTile(bbox[0], bbox[1], zoom);
-	      var ur = _tilebelt2.default.pointToTile(bbox[2], bbox[3], zoom);
-
-	      for (var i = ll[0]; i < Math.min(ur[0] + 1, Math.pow(2, zoom)); i++) {
-	        for (var j = ur[1]; j < Math.min(ll[1] + 1, Math.pow(2, zoom)); j++) {
-	          tiles.push([i, j, zoom]);
-	        }
-	      }
-	      return tiles;
-	    }
-	  }, {
-	    key: '_renderBox',
-	    value: function _renderBox(ctx, bbox, project, width, height) {
-	      var stroke = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : '#ffffff';
-	      var strokeWidth = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : 1;
-
-	      var ul = project([bbox[0], bbox[3]]);
-	      var lr = project([bbox[2], bbox[1]]);
-	      var buf = -50.0;
-	      var shouldDraw = ul[0] > buf && ul[0] < width + Math.abs(buf) && ul[1] > buf && ul[1] < height + Math.abs(buf);
-	      //&& ( lr[0] < width + (buf * -1) && lr[0] < buf );
-	      if (shouldDraw) {
-	        ctx.strokeStyle = stroke;
-	        ctx.lineWidth = strokeWidth;
-	        ctx.beginPath();
-	        ctx.rect(ul[0], ul[1], lr[0] - ul[0], lr[1] - ul[1]);
-	        ctx.stroke();
-	      }
-	      return shouldDraw;
-	    }
-	  }, {
-	    key: '_renderGeom',
-	    value: function _renderGeom(loc, ctx, zoom, project, width, height) {
-	      var _this3 = this;
-
-	      var tileSet = [];
-	      if (Math.floor(zoom) < 5) {
-	        var px = project(loc.properties.center.coordinates);
-	        ctx.beginPath();
-	        ctx.arc(px[0], px[1], Math.max(3, Math.floor(zoom * .75)), 0, 2 * Math.PI);
-	        ctx.fill();
-	      } else if (Math.floor(zoom) <= 8) {
-	        this._renderBox(ctx, loc.properties.bounds, project, width, height);
-	      } else if (Math.floor(zoom) > 8) {
-	        this._renderBox(ctx, loc.properties.bounds, project, width, height, '#ffdd00', 2);
-	        var tiles = this._bboxToTiles(loc.properties.bounds, 15);
-	        tiles.forEach(function (tile) {
-	          var bbox = _tilebelt2.default.tileToBBOX(tile);
-	          var _drawn = _this3._renderBox(ctx, bbox, project, width, height, '#999');
-	          if (_drawn) {
-	            var _loc = _extends({}, loc, { properties: _extends({}, loc.properties, { zxy: tile, bounds: bbox }) });
-	            tileSet.push(_loc);
-	          }
-	        });
-	      }
-	      return tileSet;
-	    }
-	  }, {
-	    key: 'drawTile',
-	    value: function drawTile(canvas, tilePoint, zoom) {
-	      console.log('draw tile', tilePoint, zoom);
-	    }
-	  }, {
-	    key: 'render',
-	    value: function render() {
-	      return _react2.default.createElement(_canvas_tile_layer2.default, { drawTile: this.drawTile });
-	    }
-	  }]);
-
-	  return Footprints;
-	}(_react.Component), (_applyDecoratedDescriptor(_class.prototype, '_redraw', [_autobindDecorator2.default], Object.getOwnPropertyDescriptor(_class.prototype, '_redraw'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, '_renderGeom', [_autobindDecorator2.default], Object.getOwnPropertyDescriptor(_class.prototype, '_renderGeom'), _class.prototype)), _class);
-	exports.default = Footprints;
-	;
-	module.exports = exports['default'];
-
-/***/ },
+/* 387 */,
 /* 388 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -41206,55 +41070,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 394 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.default = undefined;
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-	var _leaflet = __webpack_require__(38);
-
-	var _reactLeaflet = __webpack_require__(37);
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var CanvasTileLayer = function (_BaseTileLayer) {
-	  _inherits(CanvasTileLayer, _BaseTileLayer);
-
-	  function CanvasTileLayer() {
-	    _classCallCheck(this, CanvasTileLayer);
-
-	    return _possibleConstructorReturn(this, (CanvasTileLayer.__proto__ || Object.getPrototypeOf(CanvasTileLayer)).apply(this, arguments));
-	  }
-
-	  _createClass(CanvasTileLayer, [{
-	    key: 'componentWillMount',
-	    value: function componentWillMount() {
-	      _get(CanvasTileLayer.prototype.__proto__ || Object.getPrototypeOf(CanvasTileLayer.prototype), 'componentWillMount', this).call(this);
-	      this.leafletElement = _leaflet.tileLayer.canvas(this.props);
-	      this.leafletElement.drawTile = this.props.drawTile;
-	    }
-	  }]);
-
-	  return CanvasTileLayer;
-	}(_reactLeaflet.BaseTileLayer);
-
-	exports.default = CanvasTileLayer;
-	module.exports = exports['default'];
-
-/***/ },
+/* 394 */,
 /* 395 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -41930,6 +41746,182 @@ return /******/ (function(modules) { // webpackBootstrap
 		return list;
 	};
 
+
+/***/ },
+/* 403 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.default = undefined;
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+	var _leaflet = __webpack_require__(38);
+
+	var _leaflet2 = _interopRequireDefault(_leaflet);
+
+	var _reactLeaflet = __webpack_require__(37);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	_leaflet2.default.CanvasOverlay = _leaflet2.default.Class.extend({
+
+	    initialize: function initialize(userDrawFunc, options) {
+	        this._userDrawFunc = userDrawFunc;
+	        _leaflet2.default.setOptions(this, options);
+	    },
+
+	    drawing: function drawing(userDrawFunc) {
+	        this._userDrawFunc = userDrawFunc;
+	        return this;
+	    },
+
+	    params: function params(options) {
+	        _leaflet2.default.setOptions(this, options);
+	        return this;
+	    },
+
+	    canvas: function canvas() {
+	        return this._canvas;
+	    },
+
+	    redraw: function redraw() {
+	        if (!this._frame) {
+	            this._frame = _leaflet2.default.Util.requestAnimFrame(this._redraw, this);
+	        }
+	        return this;
+	    },
+
+	    onAdd: function onAdd(map) {
+	        this._map = map;
+	        this._canvas = _leaflet2.default.DomUtil.create('canvas', 'leaflet-heatmap-layer');
+
+	        var size = this._map.getSize();
+	        this._canvas.width = size.x;
+	        this._canvas.height = size.y;
+
+	        var animated = this._map.options.zoomAnimation && _leaflet2.default.Browser.any3d;
+	        _leaflet2.default.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
+
+	        map._panes.overlayPane.appendChild(this._canvas);
+
+	        map.on('moveend', this._reset, this);
+	        map.on('resize', this._resize, this);
+
+	        if (map.options.zoomAnimation && _leaflet2.default.Browser.any3d) {
+	            //map.on('zoomanim', this._animateZoom, this);
+	        }
+
+	        this._reset();
+	    },
+
+	    onRemove: function onRemove(map) {
+	        map.getPanes().overlayPane.removeChild(this._canvas);
+
+	        map.off('moveend', this._reset, this);
+	        map.off('resize', this._resize, this);
+
+	        if (map.options.zoomAnimation) {
+	            //map.off('zoomanim', this._animateZoom, this);
+	        }
+	        this_canvas = null;
+	    },
+
+	    addTo: function addTo(map) {
+	        map.addLayer(this);
+	        return this;
+	    },
+
+	    _resize: function _resize(resizeEvent) {
+	        this._canvas.width = resizeEvent.newSize.x;
+	        this._canvas.height = resizeEvent.newSize.y;
+	    },
+	    _reset: function _reset() {
+	        var topLeft = this._map.containerPointToLayerPoint([0, 0]);
+	        _leaflet2.default.DomUtil.setPosition(this._canvas, topLeft);
+	        this._redraw();
+	    },
+
+	    _redraw: function _redraw() {
+	        var size = this._map.getSize();
+	        var bounds = this._map.getBounds();
+	        var zoomScale = size.x * 180 / (20037508.34 * (bounds.getEast() - bounds.getWest())); // resolution = 1/zoomScale
+	        var zoom = this._map.getZoom();
+
+	        // console.time('process');
+
+	        if (this._userDrawFunc) {
+	            this._userDrawFunc(this, {
+	                canvas: this._canvas,
+	                bounds: bounds,
+	                size: size,
+	                zoomScale: zoomScale,
+	                zoom: zoom,
+	                options: this.options
+	            });
+	        }
+
+	        this._frame = null;
+	    },
+
+	    _animateZoom: function _animateZoom(e) {
+	        var scale = this._map.getZoomScale(e.zoom),
+	            offset = this._map._getCenterOffset(e.center)._multiplyBy(-scale).subtract(this._map._getMapPanePos());
+
+	        this._canvas.style[_leaflet2.default.DomUtil.TRANSFORM] = _leaflet2.default.DomUtil.getTranslateString(offset) + ' scale(' + scale + ')';
+	    }
+	});
+
+	_leaflet2.default.canvasOverlay = function (drawFunc, options) {
+	    return new _leaflet2.default.CanvasOverlay(drawFunc, options);
+	};
+
+	var CanvasLayer = function (_MapLayer) {
+	    _inherits(CanvasLayer, _MapLayer);
+
+	    function CanvasLayer() {
+	        _classCallCheck(this, CanvasLayer);
+
+	        return _possibleConstructorReturn(this, (CanvasLayer.__proto__ || Object.getPrototypeOf(CanvasLayer)).apply(this, arguments));
+	    }
+
+	    _createClass(CanvasLayer, [{
+	        key: 'componentWillMount',
+	        value: function componentWillMount() {
+	            _get(CanvasLayer.prototype.__proto__ || Object.getPrototypeOf(CanvasLayer.prototype), 'componentWillMount', this).call(this);
+	            var _props = this.props;
+	            var draw = _props.draw;
+
+	            var props = _objectWithoutProperties(_props, ['draw']);
+
+	            this.leafletElement = _leaflet2.default.canvasOverlay(draw, props);
+	        }
+	    }, {
+	        key: 'componentWillReceiveProps',
+	        value: function componentWillReceiveProps() {
+	            this.leafletElement.redraw();
+	        }
+	    }]);
+
+	    return CanvasLayer;
+	}(_reactLeaflet.MapLayer);
+
+	exports.default = CanvasLayer;
+	module.exports = exports['default'];
 
 /***/ }
 /******/ ])

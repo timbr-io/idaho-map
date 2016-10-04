@@ -105,9 +105,9 @@ export default class Footprints extends Component {
       ctx.beginPath();
       ctx.arc( px[0], px[1], Math.max(3, Math.floor( zoom * .75 )), 0, 2 * Math.PI );
       ctx.fill();
-    } else if ( Math.floor( zoom ) <= 8 ){
+    } else if ( Math.floor( zoom ) <= 7 ){
       this._renderBox( ctx, loc.properties.bounds, project, width, height );
-    } else if ( Math.floor( zoom ) > 8 ) {
+    } else if ( Math.floor( zoom ) > 7 ) {
       this._renderBox( ctx, loc.properties.bounds, project, width, height, '#ffdd00', 2 );
       const tiles = this._bboxToTiles( loc.properties.bounds, 15 );
       tiles.forEach( tile => {
@@ -123,12 +123,16 @@ export default class Footprints extends Component {
   }
 
   drawTile( canvas, tilePoint, zoom ){
-    console.log('draw tile', tilePoint, zoom);
+    console.log('draw tile', tilePoint, zoom, this);
+    // get all features in the tile
+      // tile to bbox
+      // search features
+    // render features, points first
   }
 
   render() {
     return (
-      <CanvasTileLayer drawTile={ this.drawTile } />
+      <CanvasTileLayer drawTile={ this.props.drawTile } />
     );
   }
 
