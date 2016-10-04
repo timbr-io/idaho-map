@@ -79,7 +79,7 @@ class IdahoMap extends React.Component {
       <div>
         <div className={css.header} ></div>
         <div className={css.row}>
-          <Map center={position} zoom={ zoom } style={{ width, height }} onClick={ this.onClick } >
+          <Map center={position} zoom={ zoom } style={{ height }} onClick={ this.onClick } >
             <TileLayer
               url={ url }
               attribution={ attribution }
@@ -88,8 +88,12 @@ class IdahoMap extends React.Component {
           </Map>
         </div>
         <div className={css.footer}>
-          <div className={'slider'}></div>
-          <div className={css.button}>Process</div>
+          <form>
+            <div className={'slider'}>
+                <input type="range" name="points" min="0" max="10" />
+            </div>
+            <div className={css.button}>Process</div>
+          </form>
         </div>
       </div>
     );
