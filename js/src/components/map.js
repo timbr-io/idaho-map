@@ -7,7 +7,7 @@ import rtree from 'rtree';
 import tilebelt from 'tilebelt';
 import Slider from './slider';
 
-import css from './css/map.css';
+require( './css/map.css' );
 
 @autobind
 class IdahoMap extends React.Component {
@@ -24,6 +24,7 @@ class IdahoMap extends React.Component {
       userMaxDate: null,
       minDate: null,
       maxDate: null,
+      dates: new Set(),
       selectedTiles: [],
       features: [],
       width: 500,
@@ -89,7 +90,7 @@ class IdahoMap extends React.Component {
     const _min = new Date( Math.min.apply( null, dates ) );
     const _max = new Date( Math.max.apply( null, dates ) );
 
-    this.setState( { features: _features, minDate: _min, maxDate: _max } );
+    this.setState( { features: _features, minDate: _min, maxDate: _max, dates: new Set( dates ) } );
   }
 
   @autobind
@@ -177,6 +178,8 @@ class IdahoMap extends React.Component {
   }
 
   draw( layer, params ) {
+    const { userMinDate, userMaxDate } = this.state;
+  
     const ctx = params.canvas.getContext( '2d' );
     ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
 
@@ -191,7 +194,11 @@ class IdahoMap extends React.Component {
       ctx.strokeStyle = 'rgb(0,136,204)';
       ctx.lineWidth = 1;
       points.forEach( pnt => {
-        this._renderFeature( pnt, ctx, layer._map );
+        // check min and max date 
+        const date = new Date( pnt.properties.acquisitionDate );
+        if ( (!userMinDate && !userMaxDate) || date <= new Date( userMaxDate ) && date >= new Date( userMinDate ) ) {
+          this._renderFeature( pnt, ctx, layer._map );
+        }
       });
     }
   }
@@ -215,6 +222,11 @@ class IdahoMap extends React.Component {
     });
   }
 
+  sliderChange( values ) {
+    const dates = [ ...this.state.dates ];
+    this.setState( { userMinDate: dates[ values[ 0 ] ], userMaxDate: dates[ values[ 1 ] - 1 ] } );
+  }
+
   render() {
     const {
       minDate,
@@ -236,8 +248,8 @@ class IdahoMap extends React.Component {
 
     return (
       <div>
-        <div className={css.header} ></div>
-        <div className={css.row}>
+        <div className={ 'header' } ></div>
+        <div className={ 'row' }>
           <Map center={position} zoom={ zoom } style={{ width, height }} onClick={ this.onClick } >
             <TileLayer
               url={ url }
@@ -246,13 +258,18 @@ class IdahoMap extends React.Component {
             <CanvasLayer { ...this.props } draw={ this.draw } />
             { selectedTiles.length && <CanvasLayer { ...this.props } draw={ this.drawSelected } /> }
           </Map>
-          { minDate && maxDate && minDate !== maxDate &&
-            <Slider { ...this.props } minDate={ minDate } maxDate={ maxDate } userMinDate={ userMinDate } userMaxDate={ userMaxDate } width={ width } />
-          }
+          <Slider 
+            { ...this.props } 
+            minDate={ minDate } 
+            maxDate={ maxDate } 
+            userMinDate={ userMinDate } 
+            userMaxDate={ userMaxDate } 
+            width={ width } 
+            onChange={ this.sliderChange } />
         </div>
-        <div className={css.footer}>
+        <div className={'footer'}>
           <div className={'slider'}></div>
-          <div className={css.button}>Process</div>
+          <div className={'btn btn-primary'}>Process</div>
         </div>
       </div>
     );

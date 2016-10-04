@@ -26,7 +26,7 @@ module.exports = [
             exclude: /(node_modules|bower_components)/,
             loaders: [`babel?${JSON.stringify( babelSettings )}`]
           },
-          { test: /\.css$/, loader: "style-loader?sourceMap!css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]" },
+          { test: /\.css$/, loader: "style-loader?sourceMap!css-loader?importLoaders=1" },
           {
             test: /\.json$/, loader: 'json-loader'
           }

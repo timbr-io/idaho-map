@@ -7,6 +7,4 @@
 .btn-primary {}
 
 .button {
-  composes: btn;
-  composes: btn-primary;
 }

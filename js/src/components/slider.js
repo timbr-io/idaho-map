@@ -1,26 +1,27 @@
 import React from 'react';
 
-export default class Slider extends React.Component {
+require('rc-slider/assets/index.css');
+import ReactSlider from 'rc-slider';
 
-  constructor( props ) {
-    super( props );
-    this.state = {
-      value: 0
-    };
-  }
 
-  onChange( event ) {
-    event.preventDefault();
-    const value = event.target.value;
-    this.setState( { value } );
-  }
+function diffDays( max, min ) {
+  return Math.round( Math.abs( ( max.getTime() - min.getTime() ) / ( 24*60*60*1000 ) ) );
+}
 
-  render() {
+export default function Slider( props ) {
+  const max = diffDays( new Date(props.maxDate), new Date(props.minDate) );
 
-    return (
-      <div style={{ maxWidth: this.props.width }}>
-        <input type="range" min={ 0 } max={ 100 } value={ this.state.value } onChange={ ( event ) => this.onChange( event ) } />
-      </div>
-    );
-  }
+  const userMin = props.userMinDate && props.userMinDate !== props.minDate ? diffDays(props.userMinDate, props.minDate): 0;
+  const userMax = props.userMaxDate ? max - diffDays( new Date(props.maxDate), new Date(props.userMaxDate) ) : max;
+
+  const displayMin = new Date( props.userMinDate || props.minDate ).toISOString().substring(0, 10);
+  const displayMax = new Date( props.userMaxDate || props.maxDate ).toISOString().substring(0, 10);
+
+  return (
+    <div style={{ height: '75px', maxWidth: props.width }}>
+      <span className={ 'pull-left' }>{ displayMin }</span>
+      <span className={ 'pull-right' }>{ displayMax }</span>
+      <ReactSlider min={ 0 } max={ max } step={ 1 } range={ true } defaultValue={[0, max]} value={[userMin, userMax]} onChange={ props.onChange } range />
+    </div>
+  );
 }
