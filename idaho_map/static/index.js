@@ -588,6 +588,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _slider2 = _interopRequireDefault(_slider);
 
+	var _list = __webpack_require__(546);
+
+	var _list2 = _interopRequireDefault(_list);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
@@ -821,9 +825,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: '_trackChip',
 	    value: function _trackChip(xyz, feature) {
 	      if (!this.renderedChips[xyz]) {
-	        this.renderedChips[xyz] = 0;
+	        this.renderedChips[xyz] = [];
 	      }
-	      this.renderedChips[xyz] += 1;
+	      this.renderedChips[xyz].push(feature);
 	    }
 	  }, {
 	    key: 'draw',
@@ -946,7 +950,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            'div',
 	            { className: 'btn btn-primary' },
 	            'Process'
-	          )
+	          ),
+	          _react2.default.createElement(_list2.default, _extends({}, this.props, { chips: chips }))
 	        )
 	      );
 	    }
@@ -49130,6 +49135,106 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// exports
 
+
+/***/ },
+/* 546 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = undefined;
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _class;
+
+	var _react = __webpack_require__(4);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _autobindDecorator = __webpack_require__(392);
+
+	var _autobindDecorator2 = _interopRequireDefault(_autobindDecorator);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var List = (0, _autobindDecorator2.default)(_class = function (_React$Component) {
+	  _inherits(List, _React$Component);
+
+	  function List(props) {
+	    _classCallCheck(this, List);
+
+	    var _this = _possibleConstructorReturn(this, (List.__proto__ || Object.getPrototypeOf(List)).call(this, props));
+
+	    _this.state = {
+	      list: []
+	    };
+	    return _this;
+	  }
+
+	  _createClass(List, [{
+	    key: 'componentWillReceiveProps',
+	    value: function componentWillReceiveProps(nextProps) {
+	      if (nextProps.chips !== this.state.list) {
+	        this.setState({ list: nextProps.chips });
+	      }
+	    }
+	  }, {
+	    key: 'onChange',
+	    value: function onChange(item) {
+	      var list = new Set(this.state.list);
+
+	      if (list.has(item)) {
+	        list.delete(item);
+	      } else {
+	        list.add(item);
+	      }
+
+	      this.setState({ list: [].concat(_toConsumableArray(list)) });
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+
+	      return _react2.default.createElement(
+	        'div',
+	        null,
+	        this.state.list.length > 0 && _react2.default.createElement(
+	          'ul',
+	          null,
+	          this.state.list.map(function (item, index) {
+	            var key = Object.keys(item)[0];
+	            return _react2.default.createElement(
+	              'li',
+	              { key: 'li-' + index },
+	              _react2.default.createElement(
+	                'span',
+	                null,
+	                key + '    images: ' + item[key].length
+	              )
+	            );
+	          })
+	        )
+	      );
+	    }
+	  }]);
+
+	  return List;
+	}(_react2.default.Component)) || _class;
+
+	exports.default = List;
+	module.exports = exports['default'];
 
 /***/ }
 /******/ ])

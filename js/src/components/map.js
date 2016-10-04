@@ -6,6 +6,7 @@ import autobind from 'autobind-decorator';
 import rtree from 'rtree';
 import tilebelt from 'tilebelt';
 import Slider from './slider';
+import List from './list';
 
 require( './css/map.css' );
 
@@ -172,9 +173,9 @@ class IdahoMap extends React.Component {
 
   _trackChip( xyz, feature ) {
     if ( !this.renderedChips[ xyz ] ) {
-      this.renderedChips[ xyz ] = 0;
+      this.renderedChips[ xyz ] = [];
     }
-    this.renderedChips[ xyz ] += 1;
+    this.renderedChips[ xyz ].push( feature );
   }
 
   draw( layer, params ) {
@@ -243,7 +244,7 @@ class IdahoMap extends React.Component {
       longitude } = this.state;
 
     const position = [latitude, longitude];
-    
+
     const chips = selectedTiles.map( tile => ( { [ tile ]: this.renderedChips[ tile ] } ) );
 
     return (
@@ -270,6 +271,7 @@ class IdahoMap extends React.Component {
         <div className={'footer'}>
           <div className={'slider'}></div>
           <div className={'btn btn-primary'}>Process</div>
+          <List { ...this.props } chips={ chips } />
         </div>
       </div>
     );
