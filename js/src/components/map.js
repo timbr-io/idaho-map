@@ -1,11 +1,10 @@
 import React from 'react';
-//import MapGL from 'react-map-gl';
 import { Map, TileLayer } from 'react-leaflet';
 import Footprints from './footprints';
 import dispatcher from './dispatcher.js';
-//import rasterTileStyle from 'raster-tile-style';
-//import Immutable from 'immutable';
 import autobind from 'autobind-decorator';
+
+import css from './css/map.css';
 
 @autobind
 class IdahoMap extends React.Component {
@@ -78,8 +77,8 @@ class IdahoMap extends React.Component {
 
     return (
       <div>
-        <div className={'header'} ></div>
-        <div className={'row'}>
+        <div className={css.header} ></div>
+        <div className={css.row}>
           <Map center={position} zoom={ zoom } style={{ width, height }} onClick={ this.onClick } >
             <TileLayer
               url={ url }
@@ -88,9 +87,9 @@ class IdahoMap extends React.Component {
             <Footprints features={ features } />
           </Map>
         </div>
-        <div className={'footer'}>
+        <div className={css.footer}>
           <div className={'slider'}></div>
-          <div className={'btn btn-primary disabled'}>Process</div>
+          <div className={css.button}>Process</div>
         </div>
       </div>
     );

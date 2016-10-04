@@ -1,0 +1,12 @@
+.header {}
+
+.footer {}
+
+.btn {}
+
+.btn-primary {}
+
+.button {
+  composes: btn;
+  composes: btn-primary;
+}
