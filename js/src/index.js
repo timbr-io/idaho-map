@@ -16,6 +16,10 @@ function load_ipython_extension () {
       "base/js/namespace",
       "base/js/events",
   ], function( Jupyter, events ) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css";
+      document.getElementsByTagName("head")[0].appendChild(link);
       JupyterReact.init( Jupyter, events, 'idaho.map', { components, on_update, save: false, react, reactDom } );
   });
 }
