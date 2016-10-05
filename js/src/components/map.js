@@ -25,7 +25,7 @@ class IdahoMap extends React.Component {
       userMaxDate: null,
       minDate: null,
       maxDate: null,
-      processing: false,
+      processing: null,
       dates: new Set(),
       selectedTiles: [],
       features: [],
@@ -69,13 +69,12 @@ class IdahoMap extends React.Component {
         const { data = {} } = payload;
         if ( data.features ) {
           this._updateFeatures( data.features );
+        } else if ( data.progress ) {
+          this.setState( { processing: data.progress } );
         }
+    
       }
     } );
-  }
-
-  _updateDates( dates ) {
-
   }
 
   _updateState( props ) {
@@ -228,13 +227,29 @@ class IdahoMap extends React.Component {
   }
   
   saveChips( chips ) {
-    if ( chips.length ) {
-      this.props.comm.send( { method: "save_chips", chips } );
-    }
+    this.props.comm.send( { method: "save_chips", chips } );
   }
 
   processChips() {
     this.props.comm.send( { method: "stitch" } );
+  }
+
+  _buildChips( selectedTiles ) {
+    const chips = {};
+    const dates = [];
+    selectedTiles.forEach( tile => {
+      this.renderedChips[ tile ].forEach( f => {
+        const date = new Date( f.properties.acquisitionDate ).toISOString().substring( 0, 10 );
+        if ( !~dates.indexOf( tile + date ) ) {
+          dates.push( tile + date );
+          if ( !chips[ date ] ) {
+            chips[ date ] = [];
+          }
+          chips[ date ].push( f );
+        }
+      } );
+    });
+    return chips;
   }
 
   render() {
@@ -245,6 +260,7 @@ class IdahoMap extends React.Component {
       userMaxDate,
       features,
       selectedTiles,
+      processing,
       width,
       height,
       zoom,
@@ -253,9 +269,12 @@ class IdahoMap extends React.Component {
       longitude } = this.state;
 
     const position = [latitude, longitude];
-
-    const chips = selectedTiles.map( tile => ( { [ tile ]: this.renderedChips[ tile ] } ) ) || [];
-    this.saveChips( chips );
+   
+    let chips = {}; 
+    if ( selectedTiles.length ) {
+      chips = this._buildChips( selectedTiles );
+      this.saveChips( chips );
+    }
 
     return (
       <div className={'idahomap'}>
@@ -282,7 +301,7 @@ class IdahoMap extends React.Component {
             </div>
           </div>
           <div className={'col-md-4'}>
-            <List { ...this.props } chips={ chips } processChips={ this.processChips }/>
+            <List { ...this.props } chips={ chips } processing={ processing } processChips={ this.processChips }/>
           </div>
         </div>
       </div>

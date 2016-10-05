@@ -29,18 +29,12 @@ class Map(Component):
             self.save_chips(data.get('chips', {}))
 
     def save_chips(self, raw_chips):
-        images = []
-        for chip in raw_chips:
-            for xyz, imgs in chip.iteritems():
-                for img in imgs:
-                    img['properties']['xyz'] = xyz
-                    images.append(img)
-        
         self.chips = defaultdict(list)
-        for f in images:
-            p = f['properties']
-            self.chips[p['idahoID']].append(p)
-       
+        for date, chips in raw_chips.iteritems():
+            for c in chips:
+              props = c['properties']
+              self.chips[props['idahoID']].append(props)
+        
 
     def get_chip_url(self, mid, xyz):
         base = "http://idaho.geobigdata.io/v1/tile/idaho-images/{}".format(mid)
@@ -70,15 +64,27 @@ class Map(Component):
         return wgs84
 
     def fetch_chips(self):
+        self.merged = []
+        total = len(sum(self.chips.values(), []))
+        current = 0
         for idaho_id in self.chips.keys():
             img_dir = os.path.join(os.environ.get('HOME','./'), 'gbdx', 'idaho', idaho_id)
 
             if not os.path.exists(img_dir):
                 os.makedirs(img_dir)
-    
-            self.merge_chips([self.get_chip('{}_{}'.format(idaho_id,t['xyz'].replace(',','_')), idaho_id, t, img_dir) for i,t in enumerate(self.chips[idaho_id])], idaho_id)
+
+            files = []
+            for i, t in enumerate(self.chips[idaho_id]):
+                current += 1 
+                text = 'Fetching {} of {} chips'.format(current, total)
+                self.send({ "method": "update", "props": {"progress": { "status": "processing", "percent": (float(current) / float(total)) * 100, "text": text }}})
+                files.append( self.get_chip('{}_{}'.format(idaho_id, t['xyz'].replace(',','_')), idaho_id, t, img_dir) )
+                self.merge_chips(files, idaho_id)
+        
+        self.send({ "method": "update", "props": {"progress": { "status": "complete" }}})
 
     def merge_chips(self, files, idaho_id):
+        print 'merging', files
         sources = [rasterio.open(f) for f in files]
         dest, output_transform = merge(sources)
 

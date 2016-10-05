@@ -1,31 +1,34 @@
 import React from 'react';
 import autobind from 'autobind-decorator';
-import classnames from 'classnames';
 
 export default function List( props ) {
-    const { chips } = props;
-    const btnClasses = classnames( 'btn btn-primary', { 'disabled': !chips.length} );
-
+    const { chips, processing, processChips } = props;
+    const dates = Object.keys(chips); 
     return (
       <div>
-        { chips.length > 0 &&
+        { dates.length > 0 &&
           <div>
             <ul>
-              { chips.map( ( item, index ) => {
-                const key = Object.keys( item )[0];
-                if ( item[ key ] ) {
+              { dates.map( ( date, i ) => {
+                const item = chips[ date ]; 
+                if ( item ) {
                   return (
-                    <li key={ 'li-' + index }>
-                      <span>{ key + '    images: ' + item[ key ].length }</span>
+                    <li key={ 'li-' + i }>
+                      <span>{ date + '    chips: ' + item.length }</span>
                     </li>
                   );
                 }
               } ) }
             </ul>
-            <div className={ btnClasses } onClick={ () => processChips( props.chips ) }>Process</div>
-            <div className={'progress'}>
-              <div className={'progress-bar'} style={{ width: '75%' }} />
-            </div>
+            <div className={'btn btn-primary'} onClick={ () => processChips( chips ) }>Process</div>
+            { processing && processing.status === "processing" &&
+              <div>
+                <div className={'progress'}>
+                  <div className={'progress-bar'} style={{ width: processing.percent+'%' }} />
+                </div>
+                { processing.text && <span>{processing.text}</span> }
+              </div>
+            }
           </div>
         }
       </div>

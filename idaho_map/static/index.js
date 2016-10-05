@@ -594,8 +594,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -621,7 +619,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      userMaxDate: null,
 	      minDate: null,
 	      maxDate: null,
-	      processing: false,
+	      processing: null,
 	      dates: new Set(),
 	      selectedTiles: [],
 	      features: [],
@@ -678,13 +676,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	          if (data.features) {
 	            _this2._updateFeatures(data.features);
+	          } else if (data.progress) {
+	            _this2.setState({ processing: data.progress });
 	          }
 	        }
 	      });
 	    }
-	  }, {
-	    key: '_updateDates',
-	    value: function _updateDates(dates) {}
 	  }, {
 	    key: '_updateState',
 	    value: function _updateState(props) {
@@ -864,9 +861,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'saveChips',
 	    value: function saveChips(chips) {
-	      if (chips.length) {
-	        this.props.comm.send({ method: "save_chips", chips: chips });
-	      }
+	      this.props.comm.send({ method: "save_chips", chips: chips });
 	    }
 	  }, {
 	    key: 'processChips',
@@ -874,10 +869,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.props.comm.send({ method: "stitch" });
 	    }
 	  }, {
-	    key: 'render',
-	    value: function render() {
+	    key: '_buildChips',
+	    value: function _buildChips(selectedTiles) {
 	      var _this5 = this;
 
+	      var chips = {};
+	      var dates = [];
+	      selectedTiles.forEach(function (tile) {
+	        _this5.renderedChips[tile].forEach(function (f) {
+	          var date = new Date(f.properties.acquisitionDate).toISOString().substring(0, 10);
+	          if (!~dates.indexOf(tile + date)) {
+	            dates.push(tile + date);
+	            if (!chips[date]) {
+	              chips[date] = [];
+	            }
+	            chips[date].push(f);
+	          }
+	        });
+	      });
+	      return chips;
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
 	      var _state2 = this.state;
 	      var minDate = _state2.minDate;
 	      var maxDate = _state2.maxDate;
@@ -885,6 +899,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var userMaxDate = _state2.userMaxDate;
 	      var features = _state2.features;
 	      var selectedTiles = _state2.selectedTiles;
+	      var processing = _state2.processing;
 	      var width = _state2.width;
 	      var height = _state2.height;
 	      var zoom = _state2.zoom;
@@ -897,10 +912,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      var position = [latitude, longitude];
 
-	      var chips = selectedTiles.map(function (tile) {
-	        return _defineProperty({}, tile, _this5.renderedChips[tile]);
-	      }) || [];
-	      this.saveChips(chips);
+	      var chips = {};
+	      if (selectedTiles.length) {
+	        chips = this._buildChips(selectedTiles);
+	        this.saveChips(chips);
+	      }
 
 	      return _react2.default.createElement(
 	        'div',
@@ -937,7 +953,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          _react2.default.createElement(
 	            'div',
 	            { className: 'col-md-4' },
-	            _react2.default.createElement(_list2.default, _extends({}, this.props, { chips: chips, processChips: this.processChips }))
+	            _react2.default.createElement(_list2.default, _extends({}, this.props, { chips: chips, processing: processing, processChips: this.processChips }))
 	          )
 	        )
 	      );
@@ -49107,36 +49123,33 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _autobindDecorator2 = _interopRequireDefault(_autobindDecorator);
 
-	var _classnames = __webpack_require__(502);
-
-	var _classnames2 = _interopRequireDefault(_classnames);
-
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function List(props) {
 	  var chips = props.chips;
+	  var processing = props.processing;
+	  var processChips = props.processChips;
 
-	  var btnClasses = (0, _classnames2.default)('btn btn-primary', { 'disabled': !chips.length });
-
+	  var dates = Object.keys(chips);
 	  return _react2.default.createElement(
 	    'div',
 	    null,
-	    chips.length > 0 && _react2.default.createElement(
+	    dates.length > 0 && _react2.default.createElement(
 	      'div',
 	      null,
 	      _react2.default.createElement(
 	        'ul',
 	        null,
-	        chips.map(function (item, index) {
-	          var key = Object.keys(item)[0];
-	          if (item[key]) {
+	        dates.map(function (date, i) {
+	          var item = chips[date];
+	          if (item) {
 	            return _react2.default.createElement(
 	              'li',
-	              { key: 'li-' + index },
+	              { key: 'li-' + i },
 	              _react2.default.createElement(
 	                'span',
 	                null,
-	                key + '    images: ' + item[key].length
+	                date + '    chips: ' + item.length
 	              )
 	            );
 	          }
@@ -49144,15 +49157,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	      ),
 	      _react2.default.createElement(
 	        'div',
-	        { className: btnClasses, onClick: function onClick() {
-	            return processChips(props.chips);
+	        { className: 'btn btn-primary', onClick: function onClick() {
+	            return processChips(chips);
 	          } },
 	        'Process'
 	      ),
-	      _react2.default.createElement(
+	      processing && processing.status === "processing" && _react2.default.createElement(
 	        'div',
-	        { className: 'progress' },
-	        _react2.default.createElement('div', { className: 'progress-bar', style: { width: '75%' } })
+	        null,
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'progress' },
+	          _react2.default.createElement('div', { className: 'progress-bar', style: { width: processing.percent + '%' } })
+	        ),
+	        processing.text && _react2.default.createElement(
+	          'span',
+	          null,
+	          processing.text
+	        )
 	      )
 	    )
 	  );
