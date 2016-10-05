@@ -258,25 +258,29 @@ class IdahoMap extends React.Component {
       <div className={'idahomap'}>
         <div className={ 'header' } ></div>
         <div className={ 'row' }>
-          <Map center={position} zoom={ zoom } style={{ width, height }} onClick={ this.onClick } >
-            <TileLayer
-              url={ url }
-              attribution={ attribution }
-            />
-            <CanvasLayer { ...this.props } draw={ this.draw } />
-            { selectedTiles.length && <CanvasLayer { ...this.props } draw={ this.drawSelected } /> }
-          </Map>
-          <Slider 
-            { ...this.props } 
-            minDate={ minDate } 
-            maxDate={ maxDate } 
-            userMinDate={ userMinDate } 
-            userMaxDate={ userMaxDate } 
-            width={ width } 
-            onChange={ this.sliderChange } />
-        </div>
-        <div className={'footer'}>
-          <List { ...this.props } chips={ chips } processChips={ this.processChips }/>
+          <div className={'col-md-8'}>
+            <Map center={position} zoom={ zoom } style={{ height }} onClick={ this.onClick } >
+              <TileLayer
+                url={ url }
+                attribution={ attribution }
+              />
+              <CanvasLayer { ...this.props } draw={ this.draw } />
+              { selectedTiles.length && <CanvasLayer { ...this.props } draw={ this.drawSelected } /> }
+            </Map>
+            <div className={'footer'}>
+              <Slider 
+                { ...this.props } 
+                minDate={ minDate } 
+                maxDate={ maxDate } 
+                userMinDate={ userMinDate } 
+                userMaxDate={ userMaxDate } 
+                width={ width } 
+                onChange={ this.sliderChange } />
+            </div>
+          </div>
+          <div className={'col-md-4'}>
+            <List { ...this.props } chips={ chips } processChips={ this.processChips }/>
+          </div>
         </div>
       </div>
     );
