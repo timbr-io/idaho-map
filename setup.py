@@ -38,6 +38,10 @@ setup(name='idaho-map',
       ],
       install_requires=[
           "ipython",
-          "jupyter-react"
+          "jupyter-react",
+          "rasterio",
+          "requests",
+          "gdal",
+          "gbdxtools"
         ]
       )

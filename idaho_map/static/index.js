@@ -556,7 +556,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _class, _desc, _value, _class2;
+	var _class;
 
 	var _react = __webpack_require__(4);
 
@@ -604,38 +604,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
-	  var desc = {};
-	  Object['ke' + 'ys'](descriptor).forEach(function (key) {
-	    desc[key] = descriptor[key];
-	  });
-	  desc.enumerable = !!desc.enumerable;
-	  desc.configurable = !!desc.configurable;
-
-	  if ('value' in desc || desc.initializer) {
-	    desc.writable = true;
-	  }
-
-	  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
-	    return decorator(target, property, desc) || desc;
-	  }, desc);
-
-	  if (context && desc.initializer !== void 0) {
-	    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
-	    desc.initializer = undefined;
-	  }
-
-	  if (desc.initializer === void 0) {
-	    Object['define' + 'Property'](target, property, desc);
-	    desc = null;
-	  }
-
-	  return desc;
-	}
-
 	__webpack_require__(544);
 
-	var IdahoMap = (0, _autobindDecorator2.default)(_class = (_class2 = function (_React$Component) {
+	var IdahoMap = (0, _autobindDecorator2.default)(_class = function (_React$Component) {
 	  _inherits(IdahoMap, _React$Component);
 
 	  function IdahoMap(props) {
@@ -735,11 +706,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.setState({ features: _features, minDate: _min, maxDate: _max, dates: new Set(dates) });
 	    }
 	  }, {
-	    key: 'updatePython',
-	    value: function updatePython(data) {
-	      this.props.comm.send({ method: "update", data: data });
-	    }
-	  }, {
 	    key: 'onClick',
 	    value: function onClick(loc) {
 	      var xyz = _tilebelt2.default.pointToTile(loc.latlng.lng, loc.latlng.lat, 15).join(',');
@@ -814,10 +780,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var ul = map.latLngToContainerPoint([bbox[3], bbox[0]]);
 	      var lr = map.latLngToContainerPoint([bbox[1], bbox[2]]);
 	      ctx.strokeStyle = 'rgba(0, 136, 204, 0.2)';
+	      ctx.fillStyle = 'rgba(0, 136, 204, 0.2)';
 	      ctx.lineWidth = 0.5;
 	      ctx.beginPath();
 	      ctx.rect(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
 	      ctx.stroke();
+	      ctx.fill();
 	      ctx.closePath();
 	      this._trackChip(tile.join(','), feature);
 	    }
@@ -827,7 +795,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!this.renderedChips[xyz]) {
 	        this.renderedChips[xyz] = [];
 	      }
-	      this.renderedChips[xyz].push(feature);
+	      var bbox = _tilebelt2.default.tileToBBOX(xyz.split(','));
+	      this.renderedChips[xyz].push(_extends({}, feature, { properties: _extends({}, feature.properties, { xyz: xyz, bounds: bbox }) }));
 	    }
 	  }, {
 	    key: 'draw',
@@ -838,6 +807,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _state = this.state;
 	      var userMinDate = _state.userMinDate;
 	      var userMaxDate = _state.userMaxDate;
+	      var minDate = _state.minDate;
+	      var maxDate = _state.maxDate;
 
 
 	      var ctx = params.canvas.getContext('2d');
@@ -857,7 +828,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        points.forEach(function (pnt) {
 	          // check min and max date 
 	          var date = new Date(pnt.properties.acquisitionDate);
-	          if (!userMinDate && !userMaxDate || date <= new Date(userMaxDate) && date >= new Date(userMinDate)) {
+	          var min = userMinDate || minDate;
+	          var max = userMaxDate || maxDate;
+	          if (date <= new Date(max) && date >= new Date(min)) {
 	            _this4._renderFeature(pnt, ctx, layer._map);
 	          }
 	        });
@@ -890,6 +863,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.setState({ userMinDate: dates[values[0]], userMaxDate: dates[values[1] - 1] });
 	    }
 	  }, {
+	    key: 'processChips',
+	    value: function processChips(chips) {
+	      if (chips.length) {
+	        this.props.comm.send({ method: "stitch", chips: chips });
+	      }
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
 	      var _this5 = this;
@@ -915,7 +895,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      var chips = selectedTiles.map(function (tile) {
 	        return _defineProperty({}, tile, _this5.renderedChips[tile]);
-	      });
+	      }) || [];
 
 	      return _react2.default.createElement(
 	        'div',
@@ -945,20 +925,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _react2.default.createElement(
 	          'div',
 	          { className: 'footer' },
-	          _react2.default.createElement('div', { className: 'slider' }),
-	          _react2.default.createElement(
-	            'div',
-	            { className: 'btn btn-primary' },
-	            'Process'
-	          ),
-	          _react2.default.createElement(_list2.default, _extends({}, this.props, { chips: chips }))
+	          _react2.default.createElement(_list2.default, _extends({}, this.props, { chips: chips, processChips: this.processChips }))
 	        )
 	      );
 	    }
 	  }]);
 
 	  return IdahoMap;
-	}(_react2.default.Component), (_applyDecoratedDescriptor(_class2.prototype, 'updatePython', [_autobindDecorator2.default], Object.getOwnPropertyDescriptor(_class2.prototype, 'updatePython'), _class2.prototype)), _class2)) || _class;
+	}(_react2.default.Component)) || _class;
 
 	exports.default = IdahoMap;
 	module.exports = exports['default'];
@@ -49145,11 +49119,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.default = undefined;
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _class;
+	exports.default = List;
 
 	var _react = __webpack_require__(4);
 
@@ -49161,79 +49131,37 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var List = (0, _autobindDecorator2.default)(_class = function (_React$Component) {
-	  _inherits(List, _React$Component);
-
-	  function List(props) {
-	    _classCallCheck(this, List);
-
-	    var _this = _possibleConstructorReturn(this, (List.__proto__ || Object.getPrototypeOf(List)).call(this, props));
-
-	    _this.state = {
-	      list: []
-	    };
-	    return _this;
-	  }
-
-	  _createClass(List, [{
-	    key: 'componentWillReceiveProps',
-	    value: function componentWillReceiveProps(nextProps) {
-	      if (nextProps.chips !== this.state.list) {
-	        this.setState({ list: nextProps.chips });
-	      }
-	    }
-	  }, {
-	    key: 'onChange',
-	    value: function onChange(item) {
-	      var list = new Set(this.state.list);
-
-	      if (list.has(item)) {
-	        list.delete(item);
-	      } else {
-	        list.add(item);
-	      }
-
-	      this.setState({ list: [].concat(_toConsumableArray(list)) });
-	    }
-	  }, {
-	    key: 'render',
-	    value: function render() {
-
-	      return _react2.default.createElement(
-	        'div',
-	        null,
-	        this.state.list.length > 0 && _react2.default.createElement(
-	          'ul',
-	          null,
-	          this.state.list.map(function (item, index) {
-	            var key = Object.keys(item)[0];
-	            return _react2.default.createElement(
-	              'li',
-	              { key: 'li-' + index },
-	              _react2.default.createElement(
-	                'span',
-	                null,
-	                key + '    images: ' + item[key].length
-	              )
-	            );
-	          })
-	        )
-	      );
-	    }
-	  }]);
-
-	  return List;
-	}(_react2.default.Component)) || _class;
-
-	exports.default = List;
+	function List(props) {
+	  return _react2.default.createElement(
+	    'div',
+	    null,
+	    props.chips.length > 0 && _react2.default.createElement(
+	      'ul',
+	      null,
+	      props.chips.map(function (item, index) {
+	        var key = Object.keys(item)[0];
+	        if (item[key]) {
+	          return _react2.default.createElement(
+	            'li',
+	            { key: 'li-' + index },
+	            _react2.default.createElement(
+	              'span',
+	              null,
+	              key + '    images: ' + item[key].length
+	            )
+	          );
+	        }
+	      })
+	    ),
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'btn btn-primary', onClick: function onClick() {
+	          return props.processChips(props.chips);
+	        } },
+	      'Process'
+	    )
+	  );
+	}
 	module.exports = exports['default'];
 
 /***/ }
