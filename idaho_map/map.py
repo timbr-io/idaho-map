@@ -4,6 +4,7 @@ import requests
 import os
 import rasterio
 from rasterio.merge import merge
+import mercantile
 
 from gbdxtools import Interface
 gbdx = Interface()
@@ -34,21 +35,21 @@ class Map(Component):
                     img['properties']['xyz'] = xyz
                     images.append(img)
         
-        chips = defaultdict(list)
+        self.chips = defaultdict(list)
         for f in images:
             p = f['properties']
-            chips[p['idahoID']].append(p)
+            self.chips[p['idahoID']].append(p)
         
-        self.fetch_chips(chips)
+        self.fetch_chips()
             
 
-    def get_chip_url(self, mid, zxy):
+    def get_chip_url(self, mid, xyz):
         base = "http://idaho.geobigdata.io/v1/tile/idaho-images/{}".format(mid)
         return "{}/{}?bands=0,1,2,3,4,5,6,7&format=tif&token={}".format(
-            base, '/'.join(map(str,[zxy[2],zxy[0],zxy[1]])), gbdx.gbdx_connection.access_token)
+            base, '/'.join(map(str,[xyz[2],xyz[0],xyz[1]])), gbdx.gbdx_connection.access_token)
 
     def get_chip(self, name, mid, data, outdir):
-        url = self.get_chip_url(mid, data['xyz'].split(','))
+        url = self.get_chip_url(mid,  data['xyz'].split(','))
         path = os.path.join(outdir, name+'.tif')
         wgs84 = os.path.join(outdir, name+'_wgs84.tif')
     
@@ -63,20 +64,20 @@ class Map(Component):
                 r.raise_for_status()
 
             # georef the file 
-            bounds = data['bounds']
-            cmd = "gdal_translate -of GTiff -a_ullr {} {} {} {} -a_srs EPSG:4326 {} {}".format(bounds[0], bounds[3], bounds[2], bounds[1], path, wgs84)
+            bounds = mercantile.bounds(map(int, data['xyz'].split(',')))
+            cmd = "gdal_translate -of GTiff -a_ullr {} {} {} {} -a_srs EPSG:4326 {} {}".format(bounds.west, bounds.north, bounds.east, bounds.south, path, wgs84)
             os.system(cmd) 
 
         return wgs84
 
-    def fetch_chips(self, chips):
-        for idaho_id in chips.keys():
+    def fetch_chips(self):
+        for idaho_id in self.chips.keys():
             img_dir = os.path.join(os.environ.get('HOME','./'), 'gbdx', 'idaho', idaho_id)
 
             if not os.path.exists(img_dir):
                 os.makedirs(img_dir)
     
-            self.merge_chips([self.get_chip('{}_{}'.format(idaho_id,i), idaho_id, t, img_dir) for i,t in enumerate(chips[idaho_id])], idaho_id)
+            self.merge_chips([self.get_chip('{}_{}'.format(idaho_id,t['xyz'].replace(',','_')), idaho_id, t, img_dir) for i,t in enumerate(self.chips[idaho_id])], idaho_id)
 
     def merge_chips(self, files, idaho_id):
         sources = [rasterio.open(f) for f in files]

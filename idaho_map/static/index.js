@@ -795,8 +795,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!this.renderedChips[xyz]) {
 	        this.renderedChips[xyz] = [];
 	      }
-	      var bbox = _tilebelt2.default.tileToBBOX(xyz.split(','));
-	      this.renderedChips[xyz].push(_extends({}, feature, { properties: _extends({}, feature.properties, { xyz: xyz, bounds: bbox }) }));
+	      //const bbox = tilebelt.tileToBBOX( xyz.split(',') );
+	      //this.renderedChips[ xyz ].push( { ...feature, properties: { ...feature.properties, xyz, bounds: bbox } } );
+	      this.renderedChips[xyz].push(feature);
 	    }
 	  }, {
 	    key: 'draw',

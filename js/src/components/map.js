@@ -172,8 +172,9 @@ class IdahoMap extends React.Component {
     if ( !this.renderedChips[ xyz ] ) {
       this.renderedChips[ xyz ] = [];
     }
-    const bbox = tilebelt.tileToBBOX( xyz.split(',') );
-    this.renderedChips[ xyz ].push( { ...feature, properties: { ...feature.properties, xyz, bounds: bbox } } );
+    //const bbox = tilebelt.tileToBBOX( xyz.split(',') );
+    //this.renderedChips[ xyz ].push( { ...feature, properties: { ...feature.properties, xyz, bounds: bbox } } );
+    this.renderedChips[ xyz ].push( feature );
   }
 
   draw( layer, params ) {
