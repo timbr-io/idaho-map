@@ -25,9 +25,11 @@ class Map(Component):
     def _handle_msg(self, msg):
         data = msg['content']['data']
         if data.get('method', '') == 'stitch':
-            self.stitch(data.get('chips', {}))
+            self.fetch_chips()
+        elif data.get('method', '') == 'save_chips':
+            self.save_chips(data.get('chips', {}))
 
-    def stitch(self, raw_chips):
+    def save_chips(self, raw_chips):
         images = []
         for chip in raw_chips:
             for xyz, imgs in chip.iteritems():
@@ -39,9 +41,7 @@ class Map(Component):
         for f in images:
             p = f['properties']
             self.chips[p['idahoID']].append(p)
-        
-        self.fetch_chips()
-            
+       
 
     def get_chip_url(self, mid, xyz):
         base = "http://idaho.geobigdata.io/v1/tile/idaho-images/{}".format(mid)

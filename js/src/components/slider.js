@@ -9,7 +9,7 @@ function diffDays( max, min ) {
 }
 
 export default function Slider( props ) {
-  const { maxDate, minDate, maxUserDate, minUserDate } = props;
+  const { maxDate, minDate, userMinDate, userMaxDate } = props;
   const max = diffDays( new Date( maxDate ), new Date( minDate ) );
 
   const userMin = userMinDate && userMinDate !== minDate ? diffDays(userMinDate, minDate): 0;

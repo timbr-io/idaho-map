@@ -862,11 +862,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.setState({ userMinDate: dates[values[0]], userMaxDate: dates[values[1] - 1] });
 	    }
 	  }, {
-	    key: 'processChips',
-	    value: function processChips(chips) {
+	    key: 'saveChips',
+	    value: function saveChips(chips) {
 	      if (chips.length) {
-	        this.props.comm.send({ method: "stitch", chips: chips });
+	        this.props.comm.send({ method: "save_chips", chips: chips });
 	      }
+	    }
+	  }, {
+	    key: 'processChips',
+	    value: function processChips() {
+	      this.props.comm.send({ method: "stitch" });
 	    }
 	  }, {
 	    key: 'render',
@@ -895,6 +900,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var chips = selectedTiles.map(function (tile) {
 	        return _defineProperty({}, tile, _this5.renderedChips[tile]);
 	      }) || [];
+	      this.saveChips(chips);
 
 	      return _react2.default.createElement(
 	        'div',
@@ -41684,8 +41690,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	function Slider(props) {
 	  var maxDate = props.maxDate;
 	  var minDate = props.minDate;
-	  var maxUserDate = props.maxUserDate;
-	  var minUserDate = props.minUserDate;
+	  var userMinDate = props.userMinDate;
+	  var userMaxDate = props.userMaxDate;
 
 	  var max = diffDays(new Date(maxDate), new Date(minDate));
 
@@ -49148,29 +49154,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	    'div',
 	    null,
 	    chips.length > 0 && _react2.default.createElement(
-	      'ul',
-	      null,
-	      chips.map(function (item, index) {
-	        var key = Object.keys(item)[0];
-	        if (item[key]) {
-	          return _react2.default.createElement(
-	            'li',
-	            { key: 'li-' + index },
-	            _react2.default.createElement(
-	              'span',
-	              null,
-	              key + '    images: ' + item[key].length
-	            )
-	          );
-	        }
-	      })
-	    ),
-	    _react2.default.createElement(
 	      'div',
-	      { className: btnClasses, onClick: function onClick() {
-	          return processChips(props.chips);
-	        } },
-	      'Process'
+	      null,
+	      _react2.default.createElement(
+	        'ul',
+	        null,
+	        chips.map(function (item, index) {
+	          var key = Object.keys(item)[0];
+	          if (item[key]) {
+	            return _react2.default.createElement(
+	              'li',
+	              { key: 'li-' + index },
+	              _react2.default.createElement(
+	                'span',
+	                null,
+	                key + '    images: ' + item[key].length
+	              )
+	            );
+	          }
+	        })
+	      ),
+	      _react2.default.createElement(
+	        'div',
+	        { className: btnClasses, onClick: function onClick() {
+	            return processChips(props.chips);
+	          } },
+	        'Process'
+	      )
 	    )
 	  );
 	}

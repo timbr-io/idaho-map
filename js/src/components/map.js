@@ -226,11 +226,15 @@ class IdahoMap extends React.Component {
     const dates = [ ...this.state.dates ];
     this.setState( { userMinDate: dates[ values[ 0 ] ], userMaxDate: dates[ values[ 1 ] - 1 ] } );
   }
-
-  processChips( chips ) {
+  
+  saveChips( chips ) {
     if ( chips.length ) {
-      this.props.comm.send({ method: "stitch", chips } );
+      this.props.comm.send( { method: "save_chips", chips } );
     }
+  }
+
+  processChips() {
+    this.props.comm.send( { method: "stitch" } );
   }
 
   render() {
@@ -251,6 +255,7 @@ class IdahoMap extends React.Component {
     const position = [latitude, longitude];
 
     const chips = selectedTiles.map( tile => ( { [ tile ]: this.renderedChips[ tile ] } ) ) || [];
+    this.saveChips( chips );
 
     return (
       <div>
