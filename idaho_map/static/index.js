@@ -588,7 +588,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _slider2 = _interopRequireDefault(_slider);
 
-	var _list = __webpack_require__(546);
+	var _list = __webpack_require__(544);
 
 	var _list2 = _interopRequireDefault(_list);
 
@@ -604,7 +604,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	__webpack_require__(544);
+	__webpack_require__(545);
 
 	var IdahoMap = (0, _autobindDecorator2.default)(_class = function (_React$Component) {
 	  _inherits(IdahoMap, _React$Component);
@@ -900,33 +900,41 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      return _react2.default.createElement(
 	        'div',
-	        null,
+	        { className: 'idahomap' },
 	        _react2.default.createElement('div', { className: 'header' }),
 	        _react2.default.createElement(
 	          'div',
 	          { className: 'row' },
 	          _react2.default.createElement(
-	            _reactLeaflet.Map,
-	            { center: position, zoom: zoom, style: { height: height }, onClick: this.onClick },
-	            _react2.default.createElement(_reactLeaflet.TileLayer, {
-	              url: url,
-	              attribution: attribution
-	            }),
-	            _react2.default.createElement(_canvas_layer2.default, _extends({}, this.props, { draw: this.draw })),
-	            selectedTiles.length && _react2.default.createElement(_canvas_layer2.default, _extends({}, this.props, { draw: this.drawSelected }))
+	            'div',
+	            { className: 'col-md-8' },
+	            _react2.default.createElement(
+	              _reactLeaflet.Map,
+	              { center: position, zoom: zoom, style: { height: height }, onClick: this.onClick },
+	              _react2.default.createElement(_reactLeaflet.TileLayer, {
+	                url: url,
+	                attribution: attribution
+	              }),
+	              _react2.default.createElement(_canvas_layer2.default, _extends({}, this.props, { draw: this.draw })),
+	              selectedTiles.length && _react2.default.createElement(_canvas_layer2.default, _extends({}, this.props, { draw: this.drawSelected }))
+	            ),
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'footer' },
+	              _react2.default.createElement(_slider2.default, _extends({}, this.props, {
+	                minDate: minDate,
+	                maxDate: maxDate,
+	                userMinDate: userMinDate,
+	                userMaxDate: userMaxDate,
+	                width: width,
+	                onChange: this.sliderChange }))
+	            )
 	          ),
-	          _react2.default.createElement(_slider2.default, _extends({}, this.props, {
-	            minDate: minDate,
-	            maxDate: maxDate,
-	            userMinDate: userMinDate,
-	            userMaxDate: userMaxDate,
-	            width: width,
-	            onChange: this.sliderChange }))
-	        ),
-	        _react2.default.createElement(
-	          'div',
-	          { className: 'footer' },
-	          _react2.default.createElement(_list2.default, _extends({}, this.props, { chips: chips, processChips: this.processChips }))
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'col-md-4' },
+	            _react2.default.createElement(_list2.default, _extends({}, this.props, { chips: chips, processChips: this.processChips }))
+	          )
 	        )
 	      );
 	    }
@@ -41694,7 +41702,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  return _react2.default.createElement(
 	    'div',
-	    { style: { height: '75px', maxWidth: props.width } },
+	    { style: { height: '75px' } },
 	    _react2.default.createElement(
 	      'span',
 	      { className: 'pull-left' },
@@ -49075,46 +49083,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 544 */
 /***/ function(module, exports, __webpack_require__) {
 
-	// style-loader: Adds some css to the DOM by adding a <style> tag
-
-	// load the styles
-	var content = __webpack_require__(545);
-	if(typeof content === 'string') content = [[module.id, content, '']];
-	// add the styles to the DOM
-	var update = __webpack_require__(543)(content, {"sourceMap":true});
-	if(content.locals) module.exports = content.locals;
-	// Hot Module Replacement
-	if(false) {
-		// When the styles change, update the <style> tags
-		if(!content.locals) {
-			module.hot.accept("!!./../../../node_modules/css-loader/index.js?importLoaders=1!./map.css", function() {
-				var newContent = require("!!./../../../node_modules/css-loader/index.js?importLoaders=1!./map.css");
-				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-				update(newContent);
-			});
-		}
-		// When the module is disposed, remove the <style> tags
-		module.hot.dispose(function() { update(); });
-	}
-
-/***/ },
-/* 545 */
-/***/ function(module, exports, __webpack_require__) {
-
-	exports = module.exports = __webpack_require__(542)();
-	// imports
-
-
-	// module
-	exports.push([module.id, ".header {}\n\n.footer {}\n\n.btn {}\n\n.btn-primary {}\n\n.button {\n}\n", ""]);
-
-	// exports
-
-
-/***/ },
-/* 546 */
-/***/ function(module, exports, __webpack_require__) {
-
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
@@ -49164,6 +49132,46 @@ return /******/ (function(modules) { // webpackBootstrap
 	  );
 	}
 	module.exports = exports['default'];
+
+/***/ },
+/* 545 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+
+	// load the styles
+	var content = __webpack_require__(546);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(543)(content, {"sourceMap":true});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../../node_modules/css-loader/index.js?importLoaders=1!./map.css", function() {
+				var newContent = require("!!./../../../node_modules/css-loader/index.js?importLoaders=1!./map.css");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 546 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(542)();
+	// imports
+
+
+	// module
+	exports.push([module.id, ".idahomap .header {\n  margin-top: 24px;\n}\n\n.idahomap .footer {\n  margin: 24px 0;\n}\n\n.idahomap .btn {\n  display: inline-block;\n  -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px;\n  cursor: pointer; /* Improves usability and consistency of cursor style between image-type 'input' and others */\n  line-height: 1.428571429;\n  padding: 6px 18px;\n  background: #00a2de;\n  color: #ffffff;\n}\n\n.idahomap .btn-primary {}\n\n.idahomap .button {\n}\n", ""]);
+
+	// exports
+
 
 /***/ }
 /******/ ])
