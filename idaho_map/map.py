@@ -4,7 +4,6 @@ import requests
 import os
 import rasterio
 from rasterio.merge import merge
-import mercantile
 
 from gbdxtools import Interface
 gbdx = Interface()
@@ -64,8 +63,8 @@ class Map(Component):
                 r.raise_for_status()
 
             # georef the file 
-            bounds = mercantile.bounds(map(int, data['xyz'].split(',')))
-            cmd = "gdal_translate -of GTiff -a_ullr {} {} {} {} -a_srs EPSG:4326 {} {}".format(bounds.west, bounds.north, bounds.east, bounds.south, path, wgs84)
+            bounds = data['bbox']
+            cmd = "gdal_translate -of GTiff -a_ullr {} {} {} {} -a_srs EPSG:4326 {} {}".format(bounds[0], bounds[3], bounds[2], bounds[1], path, wgs84)
             os.system(cmd) 
 
         return wgs84

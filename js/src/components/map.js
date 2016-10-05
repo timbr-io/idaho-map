@@ -163,16 +163,16 @@ class IdahoMap extends React.Component {
     ctx.stroke();
     ctx.fill();
     ctx.closePath();
-    this._trackChip( tile.join( ',' ), feature );
+    this._trackChip( tile, feature );
   }
 
-  _trackChip( xyz, feature ) {
+  _trackChip( tile, feature ) {
+    const xyz = tile.join( ',' ); 
     if ( !this.renderedChips[ xyz ] ) {
       this.renderedChips[ xyz ] = [];
     }
-    //const bbox = tilebelt.tileToBBOX( xyz.split(',') );
-    //this.renderedChips[ xyz ].push( { ...feature, properties: { ...feature.properties, xyz, bounds: bbox } } );
-    this.renderedChips[ xyz ].push( feature );
+    const bbox = tilebelt.tileToBBOX( [ parseInt( tile[ 0 ] ), parseInt( tile[ 1 ] ), 15 ] );
+    this.renderedChips[ xyz ].push( { ...feature, properties: { ...feature.properties, xyz, bbox } } );
   }
 
   draw( layer, params ) {

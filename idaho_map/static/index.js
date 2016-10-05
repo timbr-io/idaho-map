@@ -785,17 +785,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	      ctx.stroke();
 	      ctx.fill();
 	      ctx.closePath();
-	      this._trackChip(tile.join(','), feature);
+	      this._trackChip(tile, feature);
 	    }
 	  }, {
 	    key: '_trackChip',
-	    value: function _trackChip(xyz, feature) {
+	    value: function _trackChip(tile, feature) {
+	      var xyz = tile.join(',');
 	      if (!this.renderedChips[xyz]) {
 	        this.renderedChips[xyz] = [];
 	      }
-	      //const bbox = tilebelt.tileToBBOX( xyz.split(',') );
-	      //this.renderedChips[ xyz ].push( { ...feature, properties: { ...feature.properties, xyz, bounds: bbox } } );
-	      this.renderedChips[xyz].push(feature);
+	      var bbox = _tilebelt2.default.tileToBBOX([parseInt(tile[0]), parseInt(tile[1]), 15]);
+	      this.renderedChips[xyz].push(_extends({}, feature, { properties: _extends({}, feature.properties, { xyz: xyz, bbox: bbox }) }));
 	    }
 	  }, {
 	    key: 'draw',
