@@ -42,6 +42,7 @@ setup(name='idaho-map',
           "rasterio",
           "requests",
           "gdal",
-          "gbdxtools"
+          "gbdxtools",
+          "mercantile"
         ]
       )
