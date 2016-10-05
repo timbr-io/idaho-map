@@ -621,6 +621,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      userMaxDate: null,
 	      minDate: null,
 	      maxDate: null,
+	      processing: false,
 	      dates: new Set(),
 	      selectedTiles: [],
 	      features: [],
@@ -725,8 +726,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var ll = _tilebelt2.default.pointToTile(bbox[0], bbox[1], zoom);
 	      var ur = _tilebelt2.default.pointToTile(bbox[2], bbox[3], zoom);
 
-	      for (var i = ll[0]; i < Math.min(ur[0] + 1, Math.pow(2, zoom)); i++) {
-	        for (var j = ur[1]; j < Math.min(ll[1] + 1, Math.pow(2, zoom)); j++) {
+	      for (var i = ll[0] + 1; i < Math.min(ur[0], Math.pow(2, zoom)); i++) {
+	        for (var j = ur[1] + 1; j < Math.min(ll[1], Math.pow(2, zoom)); j++) {
 	          tiles.push([i, j, zoom]);
 	        }
 	      }
@@ -779,9 +780,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function _renderChip(tile, bbox, feature, ctx, map) {
 	      var ul = map.latLngToContainerPoint([bbox[3], bbox[0]]);
 	      var lr = map.latLngToContainerPoint([bbox[1], bbox[2]]);
-	      ctx.strokeStyle = 'rgba(0, 136, 204, 0.2)';
-	      ctx.fillStyle = 'rgba(0, 136, 204, 0.2)';
-	      ctx.lineWidth = 0.5;
 	      ctx.beginPath();
 	      ctx.rect(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
 	      ctx.stroke();
@@ -823,9 +821,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.renderedChips = {};
 
 	      if (points.length) {
-	        ctx.fillStyle = "rgba(0,136,204, 0.5)";
-	        ctx.strokeStyle = 'rgb(0,136,204)';
-	        ctx.lineWidth = 1;
+	        ctx.strokeStyle = 'rgba(0, 136, 204, 0.4)';
+	        ctx.fillStyle = 'rgba(0, 136, 204, 0.1)';
+	        ctx.lineWidth = 0.5;
 	        points.forEach(function (pnt) {
 	          // check min and max date 
 	          var date = new Date(pnt.properties.acquisitionDate);
@@ -41684,13 +41682,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function Slider(props) {
-	  var max = diffDays(new Date(props.maxDate), new Date(props.minDate));
+	  var maxDate = props.maxDate;
+	  var minDate = props.minDate;
+	  var maxUserDate = props.maxUserDate;
+	  var minUserDate = props.minUserDate;
 
-	  var userMin = props.userMinDate && props.userMinDate !== props.minDate ? diffDays(props.userMinDate, props.minDate) : 0;
-	  var userMax = props.userMaxDate ? max - diffDays(new Date(props.maxDate), new Date(props.userMaxDate)) : max;
+	  var max = diffDays(new Date(maxDate), new Date(minDate));
 
-	  var displayMin = new Date(props.userMinDate || props.minDate).toISOString().substring(0, 10);
-	  var displayMax = new Date(props.userMaxDate || props.maxDate).toISOString().substring(0, 10);
+	  var userMin = userMinDate && userMinDate !== minDate ? diffDays(userMinDate, minDate) : 0;
+	  var userMax = userMaxDate ? max - diffDays(new Date(maxDate), new Date(userMaxDate)) : max;
+
+	  var displayMin = new Date(userMinDate || minDate).toISOString().substring(0, 10);
+	  var displayMax = new Date(userMaxDate || maxDate).toISOString().substring(0, 10);
 
 	  return _react2.default.createElement(
 	    'div',
@@ -49130,16 +49133,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _autobindDecorator2 = _interopRequireDefault(_autobindDecorator);
 
+	var _classnames = __webpack_require__(502);
+
+	var _classnames2 = _interopRequireDefault(_classnames);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function List(props) {
+	  var chips = props.chips;
+
+	  var btnClasses = (0, _classnames2.default)('btn btn-primary', { 'disabled': !chips.length });
+
 	  return _react2.default.createElement(
 	    'div',
 	    null,
-	    props.chips.length > 0 && _react2.default.createElement(
+	    chips.length > 0 && _react2.default.createElement(
 	      'ul',
 	      null,
-	      props.chips.map(function (item, index) {
+	      chips.map(function (item, index) {
 	        var key = Object.keys(item)[0];
 	        if (item[key]) {
 	          return _react2.default.createElement(
@@ -49156,8 +49167,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    ),
 	    _react2.default.createElement(
 	      'div',
-	      { className: 'btn btn-primary', onClick: function onClick() {
-	          return props.processChips(props.chips);
+	      { className: btnClasses, onClick: function onClick() {
+	          return processChips(props.chips);
 	        } },
 	      'Process'
 	    )

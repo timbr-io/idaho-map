@@ -25,6 +25,7 @@ class IdahoMap extends React.Component {
       userMaxDate: null,
       minDate: null,
       maxDate: null,
+      processing: false,
       dates: new Set(),
       selectedTiles: [],
       features: [],
@@ -109,8 +110,8 @@ class IdahoMap extends React.Component {
     const ll = tilebelt.pointToTile( bbox[0], bbox[1], zoom );
     const ur = tilebelt.pointToTile( bbox[2], bbox[3], zoom );
 
-    for ( let i = ll[0]; i < Math.min(ur[ 0 ] + 1 , 2**zoom); i++ ) {
-      for ( let j = ur[1]; j < Math.min(ll[ 1 ] + 1, 2**zoom); j++ ) {
+    for ( let i = ll[0]+1; i < Math.min(ur[ 0 ], 2**zoom); i++ ) {
+      for ( let j = ur[1]+1; j < Math.min(ll[ 1 ], 2**zoom); j++ ) {
         tiles.push( [ i, j, zoom ] );
       }
     }
@@ -157,9 +158,6 @@ class IdahoMap extends React.Component {
   _renderChip( tile, bbox, feature, ctx, map ) {
     const ul = map.latLngToContainerPoint([bbox[3], bbox[0]]);
     const lr = map.latLngToContainerPoint([bbox[1], bbox[2]]);
-    ctx.strokeStyle = 'rgba(0, 136, 204, 0.2)';
-    ctx.fillStyle = 'rgba(0, 136, 204, 0.2)';
-    ctx.lineWidth = 0.5;
     ctx.beginPath();
     ctx.rect(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
     ctx.stroke();
@@ -190,9 +188,9 @@ class IdahoMap extends React.Component {
     this.renderedChips = {};
 
     if ( points.length ) {
-      ctx.fillStyle = "rgba(0,136,204, 0.5)";
-      ctx.strokeStyle = 'rgb(0,136,204)';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(0, 136, 204, 0.4)';
+      ctx.fillStyle = 'rgba(0, 136, 204, 0.1)';
+      ctx.lineWidth = 0.5;
       points.forEach( pnt => {
         // check min and max date 
         const date = new Date( pnt.properties.acquisitionDate );
