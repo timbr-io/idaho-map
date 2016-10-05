@@ -1,12 +1,12 @@
-.header {
+.idahomap .header {
   margin-top: 24px;
 }
 
-.footer {
+.idahomap .footer {
   margin: 24px 0;
 }
 
-.btn {
+.idahomap .btn {
   display: inline-block;
   -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px;
   cursor: pointer; /* Improves usability and consistency of cursor style between image-type 'input' and others */
@@ -16,7 +16,7 @@
   color: #ffffff;
 }
 
-.btn-primary {}
+.idahomap .btn-primary {}
 
-.button {
+.idahomap .button {
 }

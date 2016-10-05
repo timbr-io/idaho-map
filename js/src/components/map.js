@@ -255,7 +255,7 @@ class IdahoMap extends React.Component {
     const chips = selectedTiles.map( tile => ( { [ tile ]: this.renderedChips[ tile ] } ) ) || [];
 
     return (
-      <div>
+      <div className={'idahomap'}>
         <div className={ 'header' } ></div>
         <div className={ 'row' }>
           <Map center={position} zoom={ zoom } style={{ width, height }} onClick={ this.onClick } >
