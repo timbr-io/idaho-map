@@ -89,7 +89,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  requirejs(["base/js/namespace", "base/js/events"], function (Jupyter, events) {
 	    var link = document.createElement("link");
 	    link.rel = "stylesheet";
-	    link.href = "http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css";
+	    link.href = "//cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css";
 	    document.getElementsByTagName("head")[0].appendChild(link);
 	    _jupyterReactJs2.default.init(Jupyter, events, 'idaho.map', { components: _components2.default, on_update: on_update, save: false, react: _react2.default, reactDom: _reactDom2.default });
 	  });
