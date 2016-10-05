@@ -82,7 +82,7 @@ class Map(Component):
                 text = 'Fetching {} of {} chips'.format(current, total)
                 self.send({ "method": "update", "props": {"progress": { "status": "processing", "percent": (float(current) / float(total)) * 100, "text": text }}})
                 files.append( self.get_chip('{}_{}'.format(idaho_id, t['xyz'].replace(',','_')), idaho_id, t, img_dir) )
-                self.merge_chips(files, idaho_id)
+            self.merge_chips(files, idaho_id)
         
         self.send({ "method": "update", "props": {"progress": { "status": "complete" }}})
 

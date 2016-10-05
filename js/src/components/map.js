@@ -33,7 +33,7 @@ class IdahoMap extends React.Component {
       height: 400,
       zoom: 4,
       baseLayer: {
-        url: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+        url: 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}@2x.png',
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
       },
       latitude: 0.0,
