@@ -283,9 +283,6 @@ class IdahoMap extends React.Component {
           </div>
           <div className={'col-md-4'}>
             <List { ...this.props } chips={ chips } processChips={ this.processChips }/>
-            <div className={'progress'}>
-              <div className={'progress-bar'} style={{ width: '75%' }} />
-            </div>
           </div>
         </div>
       </div>

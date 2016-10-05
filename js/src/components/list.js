@@ -23,6 +23,9 @@ export default function List( props ) {
               } ) }
             </ul>
             <div className={ btnClasses } onClick={ () => processChips( props.chips ) }>Process</div>
+            <div className={'progress'}>
+              <div className={'progress-bar'} style={{ width: '75%' }} />
+            </div>
           </div>
         }
       </div>
