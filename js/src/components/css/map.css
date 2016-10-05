@@ -1,3 +1,4 @@
+.idahomap { padding: 0 0 0 12px; }
 .idahomap .header {
   margin-top: 24px;
 }
@@ -15,6 +16,8 @@
   background: #00a2de;
   color: #ffffff;
 }
+
+.idahomap .meta { font-size: 0.83em; color: #999999; }
 
 .idahomap .btn-primary {}
 
@@ -37,7 +40,7 @@
 .idahomap .idahomap-slider .idahomap-slider-bar { padding: 0 6px; }
 .idahomap .idahomap-slider .idahomap-slider-key { margin-top: 6px; font-size: 0.83em; }
 
-.idahomap .idahomap-list { margin: 0 24px; }
+.idahomap .idahomap-list { margin: 0 0 0 24px; }
 .idahomap .idahomap-list h3 {
   font-size: 14px;
   margin: 0;
@@ -47,7 +50,19 @@
   margin: 6px 0;
   padding: 0;
   display: block;
-  max-height: 340px;
+  height: 340px;
   overflow: auto;
-  border: 1px solid #efefef;
+  border: 1px solid #e7e7e7;
 }
+.idahomap .idahomap-list ul li {
+  padding: 4px;
+  border-bottom: 1px solid #f7f7f7;
+  line-height: 1;
+}
+.idahomap .idahomap-list ul li:last-child {
+  border-bottom: none;
+}
+.idahomap .idahomap-list ul li .meta { margin-left: 9px; }
+
+.idahomap .idahomap-progress { margin-top: 20px; font-size: 0.83em; color: #999999; }
+.idahomap .idahomap-progress .progress { margin: 0; }

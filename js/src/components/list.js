@@ -15,7 +15,7 @@ export default function List( props ) {
                   if ( item ) {
                     return (
                       <li key={ 'li-' + i }>
-                        <span>{ date + '    chips: ' + item.length }</span>
+                        <span>{ date } <span className={'meta'}>({item.length} chips)</span></span>
                       </li>
                     );
                   }
@@ -23,11 +23,11 @@ export default function List( props ) {
               </ul>
             <div className={'btn btn-primary'} onClick={ () => processChips( chips ) }>Process</div>
             { processing && processing.status === "processing" &&
-              <div>
+              <div className={'idahomap-progress'}>
+                { processing.text && <span>{processing.text}</span> }
                 <div className={'progress'}>
                   <div className={'progress-bar'} style={{ width: processing.percent+'%' }} />
                 </div>
-                { processing.text && <span>{processing.text}</span> }
               </div>
             }
           </div>
