@@ -95,22 +95,36 @@ class IdahoMap extends React.Component {
   }
 
   onClick( loc ) {
-    const xyz = tilebelt.pointToTile( loc.latlng.lng, loc.latlng.lat, 15 ).join(',');
+    /*const xyz = tilebelt.pointToTile( loc.latlng.lng, loc.latlng.lat, 15 ).join(',');
     const chips = this.renderedChips[ xyz ];
     if ( chips && !~this.state.selectedTiles.indexOf( xyz ) ) {
       this.setState( { selectedTiles: [ ...this.state.selectedTiles, xyz ] } );
     } else {
       this.setState( { selectedTiles: [ ...this.state.selectedTiles.filter( t => t != xyz ) ] } );
-    }
+    }*/
   }
 
-  _bboxToTiles( bbox, zoom ) {
+  onDrawBox( e ) {
+    const coords = e.layer.toGeoJSON().geometry.coordinates[0];
+    const tiles = this._bboxToTiles( coords[0].concat(coords[2]), 15, 1 );
+    const selectedTiles = [];
+    tiles.forEach( tile => {
+      const xyz = tile.join(',');
+      const chips = this.renderedChips[ xyz ];
+      if ( chips ) {
+        selectedTiles.push( xyz );
+      }
+    });
+    this.setState( { selectedTiles } );
+  } 
+
+  _bboxToTiles( bbox, zoom, buff=0 ) {
     const tiles = [];
     const ll = tilebelt.pointToTile( bbox[0], bbox[1], zoom );
     const ur = tilebelt.pointToTile( bbox[2], bbox[3], zoom );
 
-    for ( let i = ll[0]+1; i < Math.min(ur[ 0 ], 2**zoom); i++ ) {
-      for ( let j = ur[1]+1; j < Math.min(ll[ 1 ], 2**zoom); j++ ) {
+    for ( let i = ll[0]+1-buff; i < Math.min(ur[ 0 ]+buff, 2**zoom); i++ ) {
+      for ( let j = ur[1]+1-buff; j < Math.min(ll[ 1 ]+buff, 2**zoom); j++ ) {
         tiles.push( [ i, j, zoom ] );
       }
     }
@@ -281,13 +295,13 @@ class IdahoMap extends React.Component {
         <div className={ 'header' } ></div>
         <div className={ 'row' }>
           <div className={'col-md-8'}>
-            <Map center={position} zoom={ zoom } style={{ height }} onClick={ this.onClick } >
+            <Map center={position} zoom={ zoom } style={{ height }} >
               <TileLayer
                 url={ url }
                 attribution={ attribution }
               />
-              <CanvasLayer { ...this.props } draw={ this.draw } />
-              { selectedTiles.length && <CanvasLayer { ...this.props } draw={ this.drawSelected } /> }
+              <CanvasLayer { ...this.props } draw={ this.draw } type={'tiles'} onDrawBox={ this.onDrawBox }/>
+              { selectedTiles.length && <CanvasLayer type={'selected'} { ...this.props } draw={ this.drawSelected } /> }
             </Map>
             <div className={'footer'}>
               <Slider 

@@ -1,10 +1,12 @@
 import L from 'leaflet';
+import Draw from 'leaflet-draw';
 
 import { MapLayer } from 'react-leaflet';
 
 L.CanvasOverlay = L.Class.extend({
 
     initialize: function (userDrawFunc, options) {
+        this._opts = options;
         this._userDrawFunc = userDrawFunc;
         L.setOptions(this, options);
     },
@@ -32,6 +34,27 @@ L.CanvasOverlay = L.Class.extend({
 
     onAdd: function (map) {
         this._map = map;
+        if ( this._opts.type && this._opts.type === 'tiles' ) {
+          var drawControl = new L.Control.Draw({
+            draw: {
+              polyline: false,
+              polygon: false,
+              circle: false,
+              marker: false,
+              rect: {
+                shapeOptions: {
+                  color: 'green'
+                }
+              }
+            }
+          });
+          map.addControl(drawControl);
+          var self = this;
+          map.on('draw:created', function (e) {
+            self._opts.onDrawBox( e );
+          });
+        }
+
         this._canvas = L.DomUtil.create('canvas', 'leaflet-heatmap-layer');
 
         var size = this._map.getSize();
