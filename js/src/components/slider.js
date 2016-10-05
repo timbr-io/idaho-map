@@ -19,10 +19,15 @@ export default function Slider( props ) {
   const displayMax = new Date( userMaxDate || maxDate ).toISOString().substring(0, 10);
 
   return (
-    <div style={{ height: '75px' }}>
-      <span className={ 'pull-left' }>{ displayMin }</span>
-      <span className={ 'pull-right' }>{ displayMax }</span>
-      <ReactSlider min={ 0 } max={ max } step={ 1 } range={ true } defaultValue={[0, max]} value={[userMin, userMax]} onChange={ props.onChange } range />
+    <div className={'idahomap-slider'}>
+      <div className={'idahomap-slider-title'}>Time Range Selection</div>
+      <div className={'idahomap-slider-bar'}>
+        <ReactSlider min={ 0 } max={ max } step={ 1 } range={ true } defaultValue={[0, max]} value={[userMin, userMax]} onChange={ props.onChange } range />
+      </div>
+      <div className={'row idahomap-slider-key'}>
+        <div className={'col-xs-6'}>Start: { displayMin }</div>
+        <div className={'col-xs-6 text-right'}>End: { displayMax }</div>
+      </div>
     </div>
   );
 }
