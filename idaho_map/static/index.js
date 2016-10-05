@@ -933,7 +933,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	          _react2.default.createElement(
 	            'div',
 	            { className: 'col-md-4' },
-	            _react2.default.createElement(_list2.default, _extends({}, this.props, { chips: chips, processChips: this.processChips }))
+	            _react2.default.createElement(_list2.default, _extends({}, this.props, { chips: chips, processChips: this.processChips })),
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'progress' },
+	              _react2.default.createElement('div', { className: 'progress-bar', style: { width: '75%' } })
+	            )
 	          )
 	        )
 	      );
