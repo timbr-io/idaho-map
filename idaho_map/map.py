@@ -4,6 +4,7 @@ import requests
 import os
 import rasterio
 from rasterio.merge import merge
+import sh
 
 from gbdxtools import Interface
 gbdx = Interface()
@@ -55,11 +56,13 @@ class Map(Component):
             else:
                 print('There was a problem retrieving IDAHO Image', url)
                 r.raise_for_status()
-
+    
             # georef the file 
             bounds = data['bbox']
-            cmd = "gdal_translate -of GTiff -a_ullr {} {} {} {} -a_srs EPSG:4326 {} {}".format(bounds[0], bounds[3], bounds[2], bounds[1], path, wgs84)
-            os.system(cmd) 
+            opts = ["-of", "GTiff", "-a_ullr", bounds[0], bounds[3], bounds[2], bounds[1], "-a_srs", "EPSG:4326",  path, wgs84]
+            which_gdal = sh.which(*["gdal_translate"]) # _env=os.environ) <- not working...
+            gdal_translate = sh.Command(which_gdal)
+            result = gdal_translate(*opts)
 
         return wgs84
 
