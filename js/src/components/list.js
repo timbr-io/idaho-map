@@ -7,19 +7,20 @@ export default function List( props ) {
     return (
       <div>
         { dates.length > 0 &&
-          <div>
-            <ul>
-              { dates.map( ( date, i ) => {
-                const item = chips[ date ]; 
-                if ( item ) {
-                  return (
-                    <li key={ 'li-' + i }>
-                      <span>{ date + '    chips: ' + item.length }</span>
-                    </li>
-                  );
-                }
-              } ) }
-            </ul>
+            <div className={'idahomap-list'}>
+              <h3>Selected Dates & Chips</h3>
+              <ul>
+                { dates.map( ( date, i ) => {
+                  const item = chips[ date ]; 
+                  if ( item ) {
+                    return (
+                      <li key={ 'li-' + i }>
+                        <span>{ date + '    chips: ' + item.length }</span>
+                      </li>
+                    );
+                  }
+                } ) }
+              </ul>
             <div className={'btn btn-primary'} onClick={ () => processChips( chips ) }>Process</div>
             { processing && processing.status === "processing" &&
               <div>

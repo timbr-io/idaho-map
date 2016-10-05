@@ -3,7 +3,7 @@
 }
 
 .idahomap .footer {
-  margin: 24px 0;
+  margin: 6px 0 24px;
 }
 
 .idahomap .btn {
@@ -19,4 +19,35 @@
 .idahomap .btn-primary {}
 
 .idahomap .button {
+}
+
+.idahomap .idahomap-slider {
+  *zoom: 1;
+}
+.idahomap .idahomap-slider:before, .idahomap .idahomap-slider:after {
+  display: table;
+  line-height: 0;
+  content: "";
+}
+.idahomap .idahomap-slider:after {
+  clear: both;
+}
+
+.idahomap .idahomap-slider .idahomap-slider-title { margin-bottom: 6px; }
+.idahomap .idahomap-slider .idahomap-slider-bar { padding: 0 6px; }
+.idahomap .idahomap-slider .idahomap-slider-key { margin-top: 6px; font-size: 0.83em; }
+
+.idahomap .idahomap-list { margin: 0 24px; }
+.idahomap .idahomap-list h3 {
+  font-size: 14px;
+  margin: 0;
+}
+.idahomap .idahomap-list ul {
+  list-style-type: none;
+  margin: 6px 0;
+  padding: 0;
+  display: block;
+  max-height: 340px;
+  overflow: auto;
+  border: 1px solid #efefef;
 }
