@@ -4,7 +4,6 @@ import requests
 import os
 import rasterio
 from rasterio.merge import merge
-import mercantile
 
 from gbdxtools import Interface
 gbdx = Interface()
@@ -25,9 +24,11 @@ class Map(Component):
     def _handle_msg(self, msg):
         data = msg['content']['data']
         if data.get('method', '') == 'stitch':
-            self.stitch(data.get('chips', {}))
+            self.fetch_chips()
+        elif data.get('method', '') == 'save_chips':
+            self.save_chips(data.get('chips', {}))
 
-    def stitch(self, raw_chips):
+    def save_chips(self, raw_chips):
         images = []
         for chip in raw_chips:
             for xyz, imgs in chip.iteritems():
@@ -39,9 +40,7 @@ class Map(Component):
         for f in images:
             p = f['properties']
             self.chips[p['idahoID']].append(p)
-        
-        self.fetch_chips()
-            
+       
 
     def get_chip_url(self, mid, xyz):
         base = "http://idaho.geobigdata.io/v1/tile/idaho-images/{}".format(mid)
@@ -64,8 +63,8 @@ class Map(Component):
                 r.raise_for_status()
 
             # georef the file 
-            bounds = mercantile.bounds(map(int, data['xyz'].split(',')))
-            cmd = "gdal_translate -of GTiff -a_ullr {} {} {} {} -a_srs EPSG:4326 {} {}".format(bounds.west, bounds.north, bounds.east, bounds.south, path, wgs84)
+            bounds = data['bbox']
+            cmd = "gdal_translate -of GTiff -a_ullr {} {} {} {} -a_srs EPSG:4326 {} {}".format(bounds[0], bounds[3], bounds[2], bounds[1], path, wgs84)
             os.system(cmd) 
 
         return wgs84

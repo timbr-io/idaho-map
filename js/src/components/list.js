@@ -1,24 +1,30 @@
 import React from 'react';
 import autobind from 'autobind-decorator';
+import classnames from 'classnames';
 
 export default function List( props ) {
+    const { chips } = props;
+    const btnClasses = classnames( 'btn btn-primary', { 'disabled': !chips.length} );
+
     return (
       <div>
-        { props.chips.length > 0 &&
-          <ul>
-            { props.chips.map( ( item, index ) => {
-              const key = Object.keys( item )[0];
-              if ( item[ key ] ) {
-                return (
-                  <li key={ 'li-' + index }>
-                    <span>{ key + '    images: ' + item[ key ].length }</span>
-                  </li>
-                );
-              }
-            } ) }
-          </ul>
+        { chips.length > 0 &&
+          <div>
+            <ul>
+              { chips.map( ( item, index ) => {
+                const key = Object.keys( item )[0];
+                if ( item[ key ] ) {
+                  return (
+                    <li key={ 'li-' + index }>
+                      <span>{ key + '    images: ' + item[ key ].length }</span>
+                    </li>
+                  );
+                }
+              } ) }
+            </ul>
+            <div className={ btnClasses } onClick={ () => processChips( props.chips ) }>Process</div>
+          </div>
         }
-        <div className={'btn btn-primary'} onClick={ () => props.processChips( props.chips ) }>Process</div>
       </div>
     );
 }

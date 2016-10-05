@@ -40,9 +40,7 @@ setup(name='idaho-map',
           "ipython",
           "jupyter-react",
           "rasterio",
-          "requests",
           "gdal",
-          "gbdxtools",
-          "mercantile"
+          "gbdxtools"
         ]
       )
