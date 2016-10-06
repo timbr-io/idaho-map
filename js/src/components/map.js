@@ -236,8 +236,14 @@ class IdahoMap extends React.Component {
   }
 
   sliderChange( values ) {
-    const dates = [ ...this.state.dates ];
-    this.setState( { userMinDate: dates[ values[ 0 ] ], userMaxDate: dates[ values[ 1 ] - 1 ] } );
+    const userMinDate = new Date( this.state.minDate )
+    const min = new Date( userMinDate.setDate( userMinDate.getDate() + values[0] ) );
+
+    const userMaxDate = new Date( this.state.maxDate );
+    const max = new Date( userMaxDate.setDate( userMaxDate.getDate() - values[1] ) );
+
+    //console.log( values, min, this.state.minDate )
+    this.setState( { userMinDate: min.toUTCString(), userMaxDate: max.toUTCString() } );
   }
   
   saveChips( chips ) {
@@ -309,7 +315,7 @@ class IdahoMap extends React.Component {
                 minDate={ minDate } 
                 maxDate={ maxDate } 
                 userMinDate={ userMinDate } 
-                userMaxDate={ userMaxDate } 
+                userMaxDate={ userMaxDate }
                 width={ width } 
                 onChange={ this.sliderChange } />
             </div>

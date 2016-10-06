@@ -878,8 +878,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'sliderChange',
 	    value: function sliderChange(values) {
-	      var dates = [].concat(_toConsumableArray(this.state.dates));
-	      this.setState({ userMinDate: dates[values[0]], userMaxDate: dates[values[1] - 1] });
+	      var userMinDate = new Date(this.state.minDate);
+	      var min = new Date(userMinDate.setDate(userMinDate.getDate() + values[0]));
+
+	      var userMaxDate = new Date(this.state.maxDate);
+	      var max = new Date(userMaxDate.setDate(userMaxDate.getDate() - values[1]));
+
+	      //console.log( values, min, this.state.minDate )
+	      this.setState({ userMinDate: min.toUTCString(), userMaxDate: max.toUTCString() });
 	    }
 	  }, {
 	    key: 'saveChips',
@@ -41753,7 +41759,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.default = Slider;
+	exports.default = undefined;
 
 	var _react = __webpack_require__(4);
 
@@ -41764,8 +41770,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _rcSlider2 = _interopRequireDefault(_rcSlider);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 	__webpack_require__(541);
 
@@ -41779,14 +41783,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var minDate = props.minDate;
 	  var userMinDate = props.userMinDate;
 	  var userMaxDate = props.userMaxDate;
+	  var _onChange = props.onChange;
+
 
 	  var max = diffDays(new Date(maxDate), new Date(minDate));
 
-	  var userMin = userMinDate && userMinDate !== minDate ? diffDays(userMinDate, minDate) : 0;
+	  var userMin = userMinDate && userMinDate !== minDate ? diffDays(new Date(userMinDate), new Date(minDate)) : 0;
 	  var userMax = userMaxDate ? max - diffDays(new Date(maxDate), new Date(userMaxDate)) : max;
 
 	  var displayMin = new Date(userMinDate || minDate).toISOString().substring(0, 10);
 	  var displayMax = new Date(userMaxDate || maxDate).toISOString().substring(0, 10);
+
+	  var sliderProps = {
+	    min: 0,
+	    max: max,
+	    step: 1,
+	    range: true,
+	    onChange: function onChange(values) {
+	      _onChange([values[0], max - values[1]]);
+	    }
+	  };
+
+	  if (userMinDate || userMaxDate) {
+	    sliderProps.defaultValue = [userMin, userMax];
+	  } else {
+	    sliderProps.value = [userMin, userMax];
+	  }
 
 	  return _react2.default.createElement(
 	    'div',
@@ -41799,7 +41821,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _react2.default.createElement(
 	      'div',
 	      { className: 'idahomap-slider-bar' },
-	      _react2.default.createElement(_rcSlider2.default, _defineProperty({ min: 0, max: max, step: 1, range: true, defaultValue: [0, max], value: [userMin, userMax], onChange: props.onChange }, 'range', true))
+	      _react2.default.createElement(_rcSlider2.default, sliderProps)
 	    ),
 	    _react2.default.createElement(
 	      'div',
@@ -41819,6 +41841,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    )
 	  );
 	}
+	exports.default = Slider;
 	module.exports = exports['default'];
 
 /***/ },
@@ -49232,7 +49255,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	              _react2.default.createElement(
 	                'span',
 	                null,
-	                date + '    chips: ' + item.length
+	                date,
+	                ' ',
+	                _react2.default.createElement(
+	                  'span',
+	                  { className: 'meta' },
+	                  '(',
+	                  item.length,
+	                  ' chips)'
+	                )
 	              )
 	            );
 	          }
@@ -49247,16 +49278,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      ),
 	      processing && processing.status === "processing" && _react2.default.createElement(
 	        'div',
-	        null,
-	        _react2.default.createElement(
-	          'div',
-	          { className: 'progress' },
-	          _react2.default.createElement('div', { className: 'progress-bar', style: { width: processing.percent + '%' } })
-	        ),
+	        { className: 'idahomap-progress' },
 	        processing.text && _react2.default.createElement(
 	          'span',
 	          null,
 	          processing.text
+	        ),
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'progress' },
+	          _react2.default.createElement('div', { className: 'progress-bar', style: { width: processing.percent + '%' } })
 	        )
 	      )
 	    )
@@ -49299,7 +49330,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	// module
-	exports.push([module.id, ".idahomap .header {\n  margin-top: 24px;\n}\n\n.idahomap .footer {\n  margin: 6px 0 24px;\n}\n\n.idahomap .btn {\n  display: inline-block;\n  -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px;\n  cursor: pointer; /* Improves usability and consistency of cursor style between image-type 'input' and others */\n  line-height: 1.428571429;\n  padding: 6px 18px;\n  background: #00a2de;\n  color: #ffffff;\n}\n\n.idahomap .btn-primary {}\n\n.idahomap .button {\n}\n\n.idahomap .idahomap-slider {\n  *zoom: 1;\n}\n.idahomap .idahomap-slider:before, .idahomap .idahomap-slider:after {\n  display: table;\n  line-height: 0;\n  content: \"\";\n}\n.idahomap .idahomap-slider:after {\n  clear: both;\n}\n\n.idahomap .idahomap-slider .idahomap-slider-title { margin-bottom: 6px; }\n.idahomap .idahomap-slider .idahomap-slider-bar { padding: 0 6px; }\n.idahomap .idahomap-slider .idahomap-slider-key { margin-top: 6px; font-size: 0.83em; }\n\n.idahomap .idahomap-list { margin: 0 24px; }\n.idahomap .idahomap-list h3 {\n  font-size: 14px;\n  margin: 0;\n}\n.idahomap .idahomap-list ul {\n  list-style-type: none;\n  margin: 6px 0;\n  padding: 0;\n  display: block;\n  max-height: 340px;\n  overflow: auto;\n  border: 1px solid #efefef;\n}\n", ""]);
+	exports.push([module.id, ".idahomap { padding: 0 0 0 12px; }\n.idahomap .header {\n  margin-top: 24px;\n}\n\n.idahomap .footer {\n  margin: 6px 0 24px;\n}\n\n.idahomap .btn {\n  display: inline-block;\n  -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px;\n  cursor: pointer; /* Improves usability and consistency of cursor style between image-type 'input' and others */\n  line-height: 1.428571429;\n  padding: 6px 18px;\n  background: #00a2de;\n  color: #ffffff;\n}\n\n.idahomap .meta { font-size: 0.83em; color: #999999; }\n\n.idahomap .btn-primary {}\n\n.idahomap .button {\n}\n\n.idahomap .idahomap-slider {\n  *zoom: 1;\n}\n.idahomap .idahomap-slider:before, .idahomap .idahomap-slider:after {\n  display: table;\n  line-height: 0;\n  content: \"\";\n}\n.idahomap .idahomap-slider:after {\n  clear: both;\n}\n\n.idahomap .idahomap-slider .idahomap-slider-title { margin-bottom: 6px; }\n.idahomap .idahomap-slider .idahomap-slider-bar { padding: 0 6px; }\n.idahomap .idahomap-slider .idahomap-slider-key { margin-top: 6px; font-size: 0.83em; }\n\n.idahomap .idahomap-list { margin: 0 0 0 24px; }\n.idahomap .idahomap-list h3 {\n  font-size: 14px;\n  margin: 0;\n}\n.idahomap .idahomap-list ul {\n  list-style-type: none;\n  margin: 6px 0;\n  padding: 0;\n  display: block;\n  height: 340px;\n  overflow: auto;\n  border: 1px solid #e7e7e7;\n}\n.idahomap .idahomap-list ul li {\n  padding: 4px;\n  border-bottom: 1px solid #f7f7f7;\n  line-height: 1;\n}\n.idahomap .idahomap-list ul li:last-child {\n  border-bottom: none;\n}\n.idahomap .idahomap-list ul li .meta { margin-left: 9px; }\n\n.idahomap .idahomap-progress { margin-top: 20px; font-size: 0.83em; color: #999999; }\n.idahomap .idahomap-progress .progress { margin: 0; }\n", ""]);
 
 	// exports
 
