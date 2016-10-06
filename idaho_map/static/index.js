@@ -666,10 +666,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      if (features.length) {
 	        var dates = features.map(function (feature) {
-	          return feature.properties.acquisitionDate;
+	          return new Date(feature.properties.acquisitionDate);
 	        });
-	        this.props.minDate = Math.min(dates);
-	        this.props.maxDate = Math.max(dates);
+	        this.props.minDate = new Date(Math.min(dates));
+	        this.props.maxDate = new Date(Math.max(dates));
 	        this._indexFeatures(features);
 	      }
 
@@ -841,18 +841,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.renderedChips = {};
 
 	      if (points.length) {
-	        ctx.strokeStyle = 'rgba(0, 136, 204, 0.4)';
-	        ctx.fillStyle = 'rgba(0, 136, 204, 0.1)';
-	        ctx.lineWidth = 0.5;
-	        points.forEach(function (pnt) {
-	          // check min and max date 
-	          var date = new Date(pnt.properties.acquisitionDate);
+	        (function () {
+	          ctx.strokeStyle = 'rgba(0, 136, 204, 0.4)';
+	          ctx.fillStyle = 'rgba(0, 136, 204, 0.1)';
+	          ctx.lineWidth = 0.5;
+
 	          var min = userMinDate || minDate;
 	          var max = userMaxDate || maxDate;
-	          if (date <= new Date(max) && date >= new Date(min)) {
-	            _this5._renderFeature(pnt, ctx, layer._map);
-	          }
-	        });
+
+	          points.forEach(function (pnt) {
+	            // check min and max date 
+	            var date = new Date(pnt.properties.acquisitionDate);
+	            if (date >= min && date <= max) {
+	              _this5._renderFeature(pnt, ctx, layer._map);
+	            }
+	          });
+	        })();
 	      }
 	    }
 	  }, {
@@ -878,14 +882,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'sliderChange',
 	    value: function sliderChange(values) {
-	      var userMinDate = new Date(this.state.minDate);
-	      var min = new Date(userMinDate.setDate(userMinDate.getDate() + values[0]));
+	      var minDate = new Date(this.state.minDate.getTime());
+	      var maxDate = new Date(this.state.maxDate.getTime());
 
-	      var userMaxDate = new Date(this.state.maxDate);
-	      var max = new Date(userMaxDate.setDate(userMaxDate.getDate() - values[1]));
+	      var min = new Date(minDate.setDate(minDate.getDate() + values[0]));
+	      var max = new Date(maxDate.setDate(maxDate.getDate() - values[1]));
 
-	      //console.log( values, min, this.state.minDate )
-	      this.setState({ userMinDate: min.toUTCString(), userMaxDate: max.toUTCString() });
+	      this.setState({ userMinDate: min, userMaxDate: max });
 	    }
 	  }, {
 	    key: 'saveChips',
@@ -41786,21 +41789,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var _onChange = props.onChange;
 
 
-	  var max = diffDays(new Date(maxDate), new Date(minDate));
+	  var max = maxDate && minDate ? diffDays(maxDate, minDate) : 0;
 
-	  var userMin = userMinDate && userMinDate !== minDate ? diffDays(new Date(userMinDate), new Date(minDate)) : 0;
-	  var userMax = userMaxDate ? max - diffDays(new Date(maxDate), new Date(userMaxDate)) : max;
+	  var userMin = minDate && userMinDate && userMinDate !== minDate ? diffDays(userMinDate, minDate) : 0;
+	  var userMax = maxDate && userMaxDate && userMaxDate !== maxDate ? max - diffDays(maxDate, userMaxDate) : max;
 
-	  var displayMin = new Date(userMinDate || minDate).toISOString().substring(0, 10);
-	  var displayMax = new Date(userMaxDate || maxDate).toISOString().substring(0, 10);
+	  var displayMin = userMinDate || minDate ? (userMinDate || minDate).toISOString().substring(0, 10) : '';
+	  var displayMax = userMaxDate || maxDate ? (userMaxDate || maxDate).toISOString().substring(0, 10) : '';
 
 	  var sliderProps = {
 	    min: 0,
 	    max: max,
 	    step: 1,
 	    range: true,
-	    onChange: function onChange(values) {
-	      _onChange([values[0], max - values[1]]);
+	    onChange: function onChange(v) {
+	      return _onChange([v[0], max - v[1]]);
 	    }
 	  };
 

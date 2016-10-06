@@ -56,9 +56,9 @@ class IdahoMap extends React.Component {
     const { features = [] } = this.props;
 
     if ( features.length ) {
-      const dates = features.map( feature => feature.properties.acquisitionDate );
-      this.props.minDate = Math.min( dates );
-      this.props.maxDate = Math.max( dates );
+      const dates = features.map( feature => new Date( feature.properties.acquisitionDate ) );
+      this.props.minDate = new Date( Math.min( dates ) );
+      this.props.maxDate = new Date( Math.max( dates ) );
       this._indexFeatures( features );
     }
 
@@ -204,12 +204,14 @@ class IdahoMap extends React.Component {
       ctx.strokeStyle = 'rgba(0, 136, 204, 0.4)';
       ctx.fillStyle = 'rgba(0, 136, 204, 0.1)';
       ctx.lineWidth = 0.5;
+
+      const min = userMinDate || minDate;
+      const max = userMaxDate || maxDate;
+
       points.forEach( pnt => {
         // check min and max date 
         const date = new Date( pnt.properties.acquisitionDate );
-        const min = userMinDate || minDate;
-        const max = userMaxDate || maxDate;
-        if ( date <= new Date( max ) && date >= new Date( min ) ) {
+        if ( date >= min && date <= max ) {
           this._renderFeature( pnt, ctx, layer._map );
         }
       });
@@ -236,14 +238,13 @@ class IdahoMap extends React.Component {
   }
 
   sliderChange( values ) {
-    const userMinDate = new Date( this.state.minDate )
-    const min = new Date( userMinDate.setDate( userMinDate.getDate() + values[0] ) );
+    const minDate = new Date( this.state.minDate.getTime() );
+    const maxDate = new Date( this.state.maxDate.getTime() );
 
-    const userMaxDate = new Date( this.state.maxDate );
-    const max = new Date( userMaxDate.setDate( userMaxDate.getDate() - values[1] ) );
+    const min = new Date( minDate.setDate( minDate.getDate() + values[0] ) );
+    const max = new Date( maxDate.setDate( maxDate.getDate() - values[1] ) );
 
-    //console.log( values, min, this.state.minDate )
-    this.setState( { userMinDate: min.toUTCString(), userMaxDate: max.toUTCString() } );
+    this.setState( { userMinDate: min, userMaxDate: max } );
   }
   
   saveChips( chips ) {
