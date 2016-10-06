@@ -26,7 +26,8 @@ export default function Slider( props ) {
     range: true,
     onChange: ( values ) => {
       onChange( [ values[ 0 ], max - values[ 1 ] ] );
-    }
+    },
+    pushable: 1
   };
 
   if ( userMinDate || userMaxDate ) {
@@ -39,7 +40,7 @@ export default function Slider( props ) {
     <div className={'idahomap-slider'}>
       <div className={'idahomap-slider-title'}>Time Range Selection</div>
       <div className={'idahomap-slider-bar'}>
-        <ReactSlider { ...sliderProps } /> 
+        <ReactSlider { ...sliderProps } />
       </div>
       <div className={'row idahomap-slider-key'}>
         <div className={'col-xs-6'}>Start: { displayMin }</div>
