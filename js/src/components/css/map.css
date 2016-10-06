@@ -58,11 +58,15 @@
   padding: 4px;
   border-bottom: 1px solid #f7f7f7;
   line-height: 1;
+  cursor: pointer;
 }
 .idahomap .idahomap-list ul li:last-child {
   border-bottom: none;
 }
 .idahomap .idahomap-list ul li .meta { margin-left: 9px; }
+
+.idahomap .idahomap-list ul li.selected { background-color: #00a2de; color: #ffffff }
+.idahomap .idahomap-list ul li.selected .meta { color: #ffffff }
 
 .idahomap .idahomap-progress { margin-top: 20px; font-size: 0.83em; color: #999999; }
 .idahomap .idahomap-progress .progress { margin: 0; }

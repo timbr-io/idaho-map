@@ -626,7 +626,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      minDate: null,
 	      maxDate: null,
 	      processing: null,
-	      dates: new Set(),
+	      selectedDates: [],
 	      selectedTiles: [],
 	      features: [],
 	      width: 500,
@@ -707,7 +707,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _min = new Date(Math.min.apply(null, dates));
 	      var _max = new Date(Math.max.apply(null, dates));
 
-	      this.setState({ features: _features, minDate: _min, maxDate: _max, dates: new Set(dates) });
+	      this.setState({ features: _features, minDate: _min, maxDate: _max });
 	    }
 	  }, {
 	    key: 'onClick',
@@ -898,48 +898,72 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'processChips',
 	    value: function processChips() {
-	      this.props.comm.send({ method: "stitch" });
+	      var _state2 = this.state;
+	      var selectedTiles = _state2.selectedTiles;
+	      var selectedDates = _state2.selectedDates;
+
+	      if (selectedDates.length) {
+	        this.props.comm.send({ method: "stitch", chips: this._buildChips(selectedTiles, selectedDates) });
+	      }
 	    }
 	  }, {
 	    key: '_buildChips',
-	    value: function _buildChips(selectedTiles) {
+	    value: function _buildChips(selectedTiles, selectedDates) {
 	      var _this6 = this;
 
 	      var chips = {};
 	      var dates = [];
 	      selectedTiles.forEach(function (tile) {
-	        _this6.renderedChips[tile].forEach(function (f) {
-	          var date = new Date(f.properties.acquisitionDate).toISOString().substring(0, 10);
-	          if (!~dates.indexOf(tile + date)) {
-	            dates.push(tile + date);
-	            if (!chips[date]) {
-	              chips[date] = [];
+	        if (_this6.renderedChips[tile]) {
+	          _this6.renderedChips[tile].forEach(function (f) {
+	            var date = new Date(f.properties.acquisitionDate).toISOString().substring(0, 10);
+	            if (!selectedDates || selectedDates && selectedDates.length && ~selectedDates.indexOf(date)) {
+	              if (!~dates.indexOf(tile + date)) {
+	                dates.push(tile + date);
+	                if (!chips[date]) {
+	                  chips[date] = [];
+	                }
+	                chips[date].push(f);
+	              }
 	            }
-	            chips[date].push(f);
-	          }
-	        });
+	          });
+	        }
 	      });
 	      return chips;
 	    }
 	  }, {
+	    key: 'selectDate',
+	    value: function selectDate(date) {
+	      var selectedDates = this.state.selectedDates;
+
+	      if (!~selectedDates.indexOf(date)) {
+	        this.setState({ selectedDates: [].concat(_toConsumableArray(selectedDates), [date]) });
+	      } else {
+	        this.setState({ selectedDates: [].concat(_toConsumableArray(selectedDates.filter(function (d) {
+	            return d !== date;
+	          }))) });
+	      }
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var _state2 = this.state;
-	      var minDate = _state2.minDate;
-	      var maxDate = _state2.maxDate;
-	      var userMinDate = _state2.userMinDate;
-	      var userMaxDate = _state2.userMaxDate;
-	      var features = _state2.features;
-	      var selectedTiles = _state2.selectedTiles;
-	      var processing = _state2.processing;
-	      var width = _state2.width;
-	      var height = _state2.height;
-	      var zoom = _state2.zoom;
-	      var _state2$baseLayer = _state2.baseLayer;
-	      var url = _state2$baseLayer.url;
-	      var attribution = _state2$baseLayer.attribution;
-	      var latitude = _state2.latitude;
-	      var longitude = _state2.longitude;
+	      var _state3 = this.state;
+	      var minDate = _state3.minDate;
+	      var maxDate = _state3.maxDate;
+	      var userMinDate = _state3.userMinDate;
+	      var userMaxDate = _state3.userMaxDate;
+	      var features = _state3.features;
+	      var selectedDates = _state3.selectedDates;
+	      var selectedTiles = _state3.selectedTiles;
+	      var processing = _state3.processing;
+	      var width = _state3.width;
+	      var height = _state3.height;
+	      var zoom = _state3.zoom;
+	      var _state3$baseLayer = _state3.baseLayer;
+	      var url = _state3$baseLayer.url;
+	      var attribution = _state3$baseLayer.attribution;
+	      var latitude = _state3.latitude;
+	      var longitude = _state3.longitude;
 
 
 	      var position = [latitude, longitude];
@@ -985,7 +1009,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          _react2.default.createElement(
 	            'div',
 	            { className: 'col-md-4' },
-	            _react2.default.createElement(_list2.default, _extends({}, this.props, { chips: chips, processing: processing, processChips: this.processChips }))
+	            _react2.default.createElement(_list2.default, _extends({}, this.props, { chips: chips, processing: processing, processChips: this.processChips, select: this.selectDate, selectedDates: selectedDates }))
 	          )
 	        )
 	      );
@@ -49227,14 +49251,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _autobindDecorator2 = _interopRequireDefault(_autobindDecorator);
 
+	var _classnames = __webpack_require__(503);
+
+	var _classnames2 = _interopRequireDefault(_classnames);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function List(props) {
 	  var chips = props.chips;
 	  var processing = props.processing;
 	  var processChips = props.processChips;
+	  var select = props.select;
+	  var selectedDates = props.selectedDates;
 
 	  var dates = Object.keys(chips);
+
+	  var btnClasses = (0, _classnames2.default)('btn btn-primary', { 'disabled': !selectedDates.length });
+
 	  return _react2.default.createElement(
 	    'div',
 	    null,
@@ -49244,7 +49277,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _react2.default.createElement(
 	        'h3',
 	        null,
-	        'Selected Dates & Chips'
+	        'Select Dates:'
 	      ),
 	      _react2.default.createElement(
 	        'ul',
@@ -49254,7 +49287,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (item) {
 	            return _react2.default.createElement(
 	              'li',
-	              { key: 'li-' + i },
+	              { className: (0, _classnames2.default)('', { 'selected': ~selectedDates.indexOf(date) }), key: 'li-' + i, onClick: function onClick() {
+	                  return select(date);
+	                } },
 	              _react2.default.createElement(
 	                'span',
 	                null,
@@ -49274,7 +49309,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      ),
 	      _react2.default.createElement(
 	        'div',
-	        { className: 'btn btn-primary', onClick: function onClick() {
+	        { className: btnClasses, onClick: function onClick() {
 	            return processChips(chips);
 	          } },
 	        'Process'
@@ -49333,7 +49368,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	// module
-	exports.push([module.id, ".idahomap { padding: 0 0 0 12px; }\n.idahomap .header {\n  margin-top: 24px;\n}\n\n.idahomap .footer {\n  margin: 6px 0 24px;\n}\n\n.idahomap .btn {\n  display: inline-block;\n  -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px;\n  cursor: pointer; /* Improves usability and consistency of cursor style between image-type 'input' and others */\n  line-height: 1.428571429;\n  padding: 6px 18px;\n  background: #00a2de;\n  color: #ffffff;\n}\n\n.idahomap .meta { font-size: 0.83em; color: #999999; }\n\n.idahomap .btn-primary {}\n\n.idahomap .button {\n}\n\n.idahomap .idahomap-slider {\n  *zoom: 1;\n}\n.idahomap .idahomap-slider:before, .idahomap .idahomap-slider:after {\n  display: table;\n  line-height: 0;\n  content: \"\";\n}\n.idahomap .idahomap-slider:after {\n  clear: both;\n}\n\n.idahomap .idahomap-slider .idahomap-slider-title { margin-bottom: 6px; }\n.idahomap .idahomap-slider .idahomap-slider-bar { padding: 0 6px; }\n.idahomap .idahomap-slider .idahomap-slider-key { margin-top: 6px; font-size: 0.83em; }\n\n.idahomap .idahomap-list { margin: 0 0 0 24px; }\n.idahomap .idahomap-list h3 {\n  font-size: 14px;\n  margin: 0;\n}\n.idahomap .idahomap-list ul {\n  list-style-type: none;\n  margin: 6px 0;\n  padding: 0;\n  display: block;\n  height: 340px;\n  overflow: auto;\n  border: 1px solid #e7e7e7;\n}\n.idahomap .idahomap-list ul li {\n  padding: 4px;\n  border-bottom: 1px solid #f7f7f7;\n  line-height: 1;\n}\n.idahomap .idahomap-list ul li:last-child {\n  border-bottom: none;\n}\n.idahomap .idahomap-list ul li .meta { margin-left: 9px; }\n\n.idahomap .idahomap-progress { margin-top: 20px; font-size: 0.83em; color: #999999; }\n.idahomap .idahomap-progress .progress { margin: 0; }\n", ""]);
+	exports.push([module.id, ".idahomap { padding: 0 0 0 12px; }\n.idahomap .header {\n  margin-top: 24px;\n}\n\n.idahomap .footer {\n  margin: 6px 0 24px;\n}\n\n.idahomap .btn {\n  display: inline-block;\n  -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px;\n  cursor: pointer; /* Improves usability and consistency of cursor style between image-type 'input' and others */\n  line-height: 1.428571429;\n  padding: 6px 18px;\n  background: #00a2de;\n  color: #ffffff;\n}\n\n.idahomap .meta { font-size: 0.83em; color: #999999; }\n\n.idahomap .btn-primary {}\n\n.idahomap .button {\n}\n\n.idahomap .idahomap-slider {\n  *zoom: 1;\n}\n.idahomap .idahomap-slider:before, .idahomap .idahomap-slider:after {\n  display: table;\n  line-height: 0;\n  content: \"\";\n}\n.idahomap .idahomap-slider:after {\n  clear: both;\n}\n\n.idahomap .idahomap-slider .idahomap-slider-title { margin-bottom: 6px; }\n.idahomap .idahomap-slider .idahomap-slider-bar { padding: 0 6px; }\n.idahomap .idahomap-slider .idahomap-slider-key { margin-top: 6px; font-size: 0.83em; }\n\n.idahomap .idahomap-list { margin: 0 0 0 24px; }\n.idahomap .idahomap-list h3 {\n  font-size: 14px;\n  margin: 0;\n}\n.idahomap .idahomap-list ul {\n  list-style-type: none;\n  margin: 6px 0;\n  padding: 0;\n  display: block;\n  height: 340px;\n  overflow: auto;\n  border: 1px solid #e7e7e7;\n}\n.idahomap .idahomap-list ul li {\n  padding: 4px;\n  border-bottom: 1px solid #f7f7f7;\n  line-height: 1;\n  cursor: pointer;\n}\n.idahomap .idahomap-list ul li:last-child {\n  border-bottom: none;\n}\n.idahomap .idahomap-list ul li .meta { margin-left: 9px; }\n\n.idahomap .idahomap-list ul li.selected { background-color: #00a2de; color: #ffffff }\n.idahomap .idahomap-list ul li.selected .meta { color: #ffffff }\n\n.idahomap .idahomap-progress { margin-top: 20px; font-size: 0.83em; color: #999999; }\n.idahomap .idahomap-progress .progress { margin: 0; }\n", ""]);
 
 	// exports
 

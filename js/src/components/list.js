@@ -1,27 +1,31 @@
 import React from 'react';
 import autobind from 'autobind-decorator';
+import classnames from 'classnames';
 
 export default function List( props ) {
-    const { chips, processing, processChips } = props;
+    const { chips, processing, processChips, select, selectedDates } = props;
     const dates = Object.keys(chips); 
+
+    const btnClasses = classnames('btn btn-primary', { 'disabled': !selectedDates.length } );
+
     return (
       <div>
         { dates.length > 0 &&
             <div className={'idahomap-list'}>
-              <h3>Selected Dates & Chips</h3>
+              <h3>Select Dates:</h3>
               <ul>
                 { dates.map( ( date, i ) => {
                   const item = chips[ date ]; 
                   if ( item ) {
                     return (
-                      <li key={ 'li-' + i }>
+                      <li className={ classnames('', { 'selected': ~selectedDates.indexOf( date ) } ) } key={ 'li-' + i } onClick={ () => select( date ) } >
                         <span>{ date } <span className={'meta'}>({item.length} chips)</span></span>
                       </li>
                     );
                   }
                 } ) }
               </ul>
-            <div className={'btn btn-primary'} onClick={ () => processChips( chips ) }>Process</div>
+            <div className={ btnClasses } onClick={ () => processChips( chips ) }>Process</div>
             { processing && processing.status === "processing" &&
               <div className={'idahomap-progress'}>
                 { processing.text && <span>{processing.text}</span> }
