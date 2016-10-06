@@ -1,7 +1,7 @@
 from jupyter_react import Component
 from collections import defaultdict
 import requests
-import os
+import os, sys
 import rasterio
 from rasterio.merge import merge
 import sh
@@ -25,7 +25,13 @@ class Map(Component):
     def _handle_msg(self, msg):
         data = msg['content']['data']
         if data.get('method', '') == 'stitch':
-            self.fetch_chips()
+            chips = defaultdict(list)
+            raw = data.get('chips', {})
+            for date, _chips in raw.iteritems():
+              for c in _chips:
+                props = c['properties']
+                chips[props['idahoID']].append(props)
+            self.fetch_chips( chips )
         elif data.get('method', '') == 'save_chips':
             self.save_chips(data.get('chips', {}))
 
@@ -54,30 +60,36 @@ class Map(Component):
                 with open(path, 'wb') as the_file:
                     the_file.write(r.content)
             else:
-                print('There was a problem retrieving IDAHO Image', url)
+                self.send({ "method": "update", "props": {"progress": { "status": "error", "text": 'There was a problem retrieving IDAHO Image {}'.format(url) }}})
                 r.raise_for_status()
     
             # georef the file 
             bounds = data['bbox']
+            print data['bbox'], data['xyz']
             opts = ["-of", "GTiff", "-a_ullr", bounds[0], bounds[3], bounds[2], bounds[1], "-a_srs", "EPSG:4326",  path, wgs84]
-            which_gdal = sh.which(*["gdal_translate"]) # _env=os.environ) <- not working...
-            gdal_translate = sh.Command(which_gdal)
+            try: 
+              gdal_translate = sh.Command(os.path.join(os.path.dirname(sys.executable), "gdal_translate"))
+            except:
+              gdal_translate = sh.Command("gdal_translate")
+
             result = gdal_translate(*opts)
 
         return wgs84
 
-    def fetch_chips(self):
+    def fetch_chips(self, chips=None):
+        if chips is None:
+            chips = self.chips
         self.merged = []
-        total = len(sum(self.chips.values(), []))
+        total = len(sum(chips.values(), []))
         current = 0
-        for idaho_id in self.chips.keys():
+        for idaho_id in chips.keys():
             img_dir = os.path.join(os.environ.get('HOME','./'), 'gbdx', 'idaho', idaho_id)
 
             if not os.path.exists(img_dir):
                 os.makedirs(img_dir)
 
             files = []
-            for i, t in enumerate(self.chips[idaho_id]):
+            for i, t in enumerate(chips[idaho_id]):
                 current += 1 
                 text = 'Fetching {} of {} chips'.format(current, total)
                 self.send({ "method": "update", "props": {"progress": { "status": "processing", "percent": (float(current) / float(total)) * 100, "text": text }}})

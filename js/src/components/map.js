@@ -26,7 +26,7 @@ class IdahoMap extends React.Component {
       minDate: null,
       maxDate: null,
       processing: null,
-      dates: new Set(),
+      selectedDates: [],
       selectedTiles: [],
       features: [],
       width: 500,
@@ -56,9 +56,9 @@ class IdahoMap extends React.Component {
     const { features = [] } = this.props;
 
     if ( features.length ) {
-      const dates = features.map( feature => feature.properties.acquisitionDate );
-      this.props.minDate = Math.min( dates );
-      this.props.maxDate = Math.max( dates );
+      const dates = features.map( feature => new Date( feature.properties.acquisitionDate ) );
+      this.props.minDate = new Date( Math.min( dates ) );
+      this.props.maxDate = new Date( Math.max( dates ) );
       this._indexFeatures( features );
     }
 
@@ -91,7 +91,7 @@ class IdahoMap extends React.Component {
     const _min = new Date( Math.min.apply( null, dates ) );
     const _max = new Date( Math.max.apply( null, dates ) );
 
-    this.setState( { features: _features, minDate: _min, maxDate: _max, dates: new Set( dates ) } );
+    this.setState( { features: _features, minDate: _min, maxDate: _max } );
   }
 
   onClick( loc ) {
@@ -204,12 +204,14 @@ class IdahoMap extends React.Component {
       ctx.strokeStyle = 'rgba(0, 136, 204, 0.4)';
       ctx.fillStyle = 'rgba(0, 136, 204, 0.1)';
       ctx.lineWidth = 0.5;
+
+      const min = userMinDate || minDate;
+      const max = userMaxDate || maxDate;
+
       points.forEach( pnt => {
         // check min and max date 
         const date = new Date( pnt.properties.acquisitionDate );
-        const min = userMinDate || minDate;
-        const max = userMaxDate || maxDate;
-        if ( date <= new Date( max ) && date >= new Date( min ) ) {
+        if ( date >= min && date <= max ) {
           this._renderFeature( pnt, ctx, layer._map );
         }
       });
@@ -236,14 +238,13 @@ class IdahoMap extends React.Component {
   }
 
   sliderChange( values ) {
-    const userMinDate = new Date( this.state.minDate )
-    const min = new Date( userMinDate.setDate( userMinDate.getDate() + values[0] ) );
+    const minDate = new Date( this.state.minDate.getTime() );
+    const maxDate = new Date( this.state.maxDate.getTime() );
 
-    const userMaxDate = new Date( this.state.maxDate );
-    const max = new Date( userMaxDate.setDate( userMaxDate.getDate() - values[1] ) );
+    const min = new Date( minDate.setDate( minDate.getDate() + values[0] ) );
+    const max = new Date( maxDate.setDate( maxDate.getDate() - values[1] ) );
 
-    //console.log( values, min, this.state.minDate )
-    this.setState( { userMinDate: min.toUTCString(), userMaxDate: max.toUTCString() } );
+    this.setState( { userMinDate: min, userMaxDate: max } );
   }
   
   saveChips( chips ) {
@@ -251,25 +252,41 @@ class IdahoMap extends React.Component {
   }
 
   processChips() {
-    this.props.comm.send( { method: "stitch" } );
+    const { selectedTiles, selectedDates } = this.state; 
+    if ( selectedDates.length ) {
+      this.props.comm.send( { method: "stitch", chips: this._buildChips( selectedTiles, selectedDates ) } );
+    }
   }
 
-  _buildChips( selectedTiles ) {
+  _buildChips( selectedTiles, selectedDates ) {
     const chips = {};
     const dates = [];
     selectedTiles.forEach( tile => {
-      this.renderedChips[ tile ].forEach( f => {
-        const date = new Date( f.properties.acquisitionDate ).toISOString().substring( 0, 10 );
-        if ( !~dates.indexOf( tile + date ) ) {
-          dates.push( tile + date );
-          if ( !chips[ date ] ) {
-            chips[ date ] = [];
+      if ( this.renderedChips[ tile ] ) {
+        this.renderedChips[ tile ].forEach( f => {
+          const date = new Date( f.properties.acquisitionDate ).toISOString().substring( 0, 10 );
+          if ( !selectedDates || ( selectedDates && selectedDates.length && ~selectedDates.indexOf( date ) ) ) {
+            if ( !~dates.indexOf( tile + date ) ) {
+              dates.push( tile + date );
+              if ( !chips[ date ] ) {
+                chips[ date ] = [];
+              }
+              chips[ date ].push( f );
+            }
           }
-          chips[ date ].push( f );
-        }
-      } );
+        } );
+      }
     });
     return chips;
+  }
+
+  selectDate( date ){ 
+    const { selectedDates } = this.state; 
+    if ( !~selectedDates.indexOf( date ) ) {
+      this.setState( { selectedDates: [ ...selectedDates, date ] });
+    } else {
+      this.setState( { selectedDates: [ ...selectedDates.filter( d => d !== date ) ] });
+    }
   }
 
   render() {
@@ -279,6 +296,7 @@ class IdahoMap extends React.Component {
       userMinDate,
       userMaxDate,
       features,
+      selectedDates,
       selectedTiles,
       processing,
       width,
@@ -321,7 +339,7 @@ class IdahoMap extends React.Component {
             </div>
           </div>
           <div className={'col-md-4'}>
-            <List { ...this.props } chips={ chips } processing={ processing } processChips={ this.processChips }/>
+            <List { ...this.props } chips={ chips } processing={ processing } processChips={ this.processChips } select={ this.selectDate } selectedDates={ selectedDates }/>
           </div>
         </div>
       </div>

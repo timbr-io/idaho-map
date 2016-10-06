@@ -11,23 +11,20 @@ function diffDays( max, min ) {
 export default function Slider( props ) {
   const { maxDate, minDate, userMinDate, userMaxDate, onChange } = props;
 
-  const max = diffDays( new Date( maxDate ), new Date( minDate ) );
+  const max = maxDate && minDate ? diffDays( maxDate, minDate ) : 0;
 
-  const userMin = userMinDate && userMinDate !== minDate ? diffDays( new Date(userMinDate), new Date(minDate)): 0;
-  const userMax = userMaxDate ? max - diffDays( new Date( maxDate ), new Date( userMaxDate ) ) : max;
+  const userMin = minDate && userMinDate && userMinDate !== minDate ? diffDays( userMinDate, minDate ) : 0;
+  const userMax = maxDate && userMaxDate && userMaxDate !== maxDate ? max - diffDays( maxDate, userMaxDate ) : max;
 
-  const displayMin = new Date( userMinDate || minDate ).toISOString().substring(0, 10);
-  const displayMax = new Date( userMaxDate || maxDate ).toISOString().substring(0, 10);
+  const displayMin = ( userMinDate || minDate ) ? ( userMinDate || minDate ).toISOString().substring(0, 10) : '';
+  const displayMax = ( userMaxDate || maxDate ) ? ( userMaxDate || maxDate ).toISOString().substring(0, 10) : '';
 
   const sliderProps = {
     min: 0,
     max: max,
     step: 1,
     range: true,
-    onChange: ( values ) => {
-      onChange( [ values[ 0 ], max - values[ 1 ] ] );
-    },
-    pushable: 1
+    onChange: v => onChange( [ v[ 0 ], max - v[ 1 ] ] )
   };
 
   if ( userMinDate || userMaxDate ) {
