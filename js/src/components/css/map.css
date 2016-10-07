@@ -7,6 +7,8 @@
   margin: 6px 0 24px;
 }
 
+.idahomap a, .idahomap a:active, .idahomap a:visited, .idahomap a:focus { color: #00a2de; }
+
 .idahomap .btn {
   display: inline-block;
   -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px;
@@ -16,8 +18,11 @@
   background: #00a2de;
   color: #ffffff;
 }
+.idahomap .btn.disabled, .idahomap .btn[disabled], .idahomap fieldset[disabled] .btn { opacity: 0.25; }
 
-.idahomap .meta { font-size: 0.83em; color: #999999; }
+.idahomap .meta { font-size: 0.694em; color: #999999; }
+.idahomap .subtle { color :#999999; }
+.idahomap .small, .idahomap small { font-size: 0.83em; }
 
 .idahomap .btn-primary {}
 
@@ -36,11 +41,12 @@
   clear: both;
 }
 
-.idahomap .idahomap-slider .idahomap-slider-title { margin-bottom: 6px; }
+.idahomap .idahomap-slider .idahomap-slider-title { margin-bottom: 6px; font-size: 14px; font-weight: bold; }
 .idahomap .idahomap-slider .idahomap-slider-bar { padding: 0 6px; }
 .idahomap .idahomap-slider .idahomap-slider-key { margin-top: 6px; font-size: 0.83em; }
 
 .idahomap .idahomap-list { margin: 0 0 0 24px; }
+.idahomap .idahomap-list .pull-right { line-height: 1; }
 .idahomap .idahomap-list h3 {
   font-size: 14px;
   margin: 0;
@@ -55,18 +61,45 @@
   border: 1px solid #e7e7e7;
 }
 .idahomap .idahomap-list ul li {
-  padding: 4px;
+  position: relative;
+  padding: 4px 4px 4px 26px;
   border-bottom: 1px solid #f7f7f7;
   line-height: 1;
   cursor: pointer;
 }
+.idahomap .idahomap-list ul li:before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  margin-top: -5px;
+  width: 12px;
+  height: 12px;
+  border: 1px solid #00a2de;
+  border-radius: 3px;
+}
 .idahomap .idahomap-list ul li:last-child {
   border-bottom: none;
 }
-.idahomap .idahomap-list ul li .meta { margin-left: 9px; }
+.idahomap .idahomap-list ul li.selected { background-color: #eef5d6; }
+.idahomap .idahomap-list ul li.selected:before {
+  background: #98c000;
+  border-color: #98c000;
+}
+.idahomap .idahomap-list ul li.selected:after {
+  content: '';
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAMAAADW3miqAAAAG1BMVEX///////////////////////////////////8HBRbfAAAACHRSTlMAEURmd5m7zGU87f4AAABcSURBVHgB5coxDoQwEMXQZLNJ/v1PTGFBNzIdQrj1ay/r192M7O4mKDEoMSg1yXKTjOfMuGFmppsk0w1KDKo2/5zt0rR+vcqgzKDMoMygzKDMoNSgMKIwohbmYx2z4wiVCIX3mwAAAABJRU5ErkJggg==);
+  background-size: 12px 12px;
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  margin-top: -5px;
+  width: 12px;
+  height: 12px;
+}
 
-.idahomap .idahomap-list ul li.selected { background-color: #00a2de; color: #ffffff }
-.idahomap .idahomap-list ul li.selected .meta { color: #ffffff }
+.idahomap .idahomap-list ul li .meta { margin-left: 9px; }
 
 .idahomap .idahomap-progress { margin-top: 20px; font-size: 0.83em; color: #999999; }
 .idahomap .idahomap-progress .progress { margin: 0; }
@@ -77,3 +110,6 @@
   background-size: 26px 26px;
   background-position: 0 0;
 }
+
+.idahomap .rc-slider-track { background-color: #98c000; }
+.idahomap .rc-slider-handle { border-color: #00a2de; }
