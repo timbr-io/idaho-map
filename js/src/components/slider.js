@@ -94,7 +94,7 @@ export default class Slider extends React.Component {
           <div className={'col-xs-6 text-right'}>End: { displayMax }</div>
         </div>
         <button onClick={ ( event ) => this.togglePlay( event ) } className='btn btn-primary btn-xs' style={{ marginTop: '10px' }}>
-          <i>{ !play ? '>' : '| |' }</i>
+          <i className={ !play ? 'fa fa-play' : 'fa fa-pause' }></i>
         </button>
       </div>
     );
