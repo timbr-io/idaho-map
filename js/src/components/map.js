@@ -290,6 +290,14 @@ class IdahoMap extends React.Component {
     }
   }
 
+  selectAll() {
+    this.setState( { selectedDates: Object.keys( this._buildChips( this.state.selectedTiles ) ) } );
+  }
+  
+  clearSelection() {
+    this.setState( { selectedDates: [] } );
+  }
+
   render() {
     const {
       minDate,
@@ -340,7 +348,15 @@ class IdahoMap extends React.Component {
             </div>
           </div>
           <div className={'col-md-4'}>
-            <List { ...this.props } chips={ chips } processing={ processing } processChips={ this.processChips } select={ this.selectDate } selectedDates={ selectedDates }/>
+            <List { ...this.props } 
+              chips={ chips } 
+              processing={ processing } 
+              processChips={ this.processChips } 
+              select={ this.selectDate } 
+              selectedDates={ selectedDates }
+              selectAll={ this.selectAll }
+              clearSelection={ this.clearSelection }
+            />
           </div>
         </div>
       </div>

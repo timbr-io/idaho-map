@@ -35,7 +35,7 @@
     "babel-preset-stage-1": "^6.5.0",
     "classnames": "^2.2.5",
     "flux": "^2.1.1",
-    "jupyter-react-js": "^0.4.0",
+    "jupyter-react-js": "^0.5.0",
     "leaflet": "^0.7.0",
     "leaflet-draw": "^0.3.2",
     "rc-slider": "^5.1.1",
