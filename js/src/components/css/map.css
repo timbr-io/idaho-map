@@ -22,6 +22,7 @@
 
 .idahomap .meta { font-size: 0.694em; color: #999999; }
 .idahomap .subtle { color :#999999; }
+.idahomap .subtle a { cursor: pointer; }
 .idahomap .small, .idahomap small { font-size: 0.83em; }
 
 .idahomap .btn-primary {}

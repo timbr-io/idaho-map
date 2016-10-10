@@ -1,8 +1,6 @@
 import JupyterReact from 'jupyter-react-js';
 import components from './components'; 
 import dispatcher from './components/dispatcher'; 
-import react from 'react';
-import reactDom from 'react-dom';
 
 const on_update = ( module, props ) => {
   dispatcher.dispatch({
@@ -26,7 +24,7 @@ function load_ipython_extension () {
       link.href = "//cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.3.2/leaflet.draw.css";
       document.getElementsByTagName("head")[0].appendChild(link);
 
-      JupyterReact.init( Jupyter, events, 'idaho.map', { components, on_update, save: false, react, reactDom } );
+      JupyterReact.init( Jupyter, events, 'idaho.map', { components, on_update, save: false } );
   });
 }
 
