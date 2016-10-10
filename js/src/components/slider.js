@@ -35,7 +35,7 @@ export default function Slider( props ) {
 
   return (
     <div className={'idahomap-slider'}>
-      <div className={'idahomap-slider-title'}>Time Range Selection</div>
+      <div className={'idahomap-slider-title'}>Set a time range:</div>
       <div className={'idahomap-slider-bar'}>
         <ReactSlider { ...sliderProps } /> 
       </div>

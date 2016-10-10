@@ -12,7 +12,10 @@ export default function List( props ) {
       <div>
         { dates.length > 0 &&
             <div className={'idahomap-list'}>
-              <h3>Select Dates:</h3>
+              <div className="pull-right">
+                <small className="subtle">Select <a>All</a> / <a>None</a></small>
+              </div>
+              <h3>Select the dates to process:</h3>
               <ul>
                 { dates.map( ( date, i ) => {
                   const item = chips[ date ]; 
@@ -25,7 +28,7 @@ export default function List( props ) {
                   }
                 } ) }
               </ul>
-            <div className={ btnClasses } onClick={ () => processChips( chips ) }>Process</div>
+            <div className={ btnClasses } onClick={ () => processChips( chips ) }>Process Images</div>
             { processing && processing.status === "processing" &&
               <div className={'idahomap-progress'}>
                 { processing.text && <span>{processing.text}</span> }
