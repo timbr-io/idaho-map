@@ -72,7 +72,7 @@ class IdahoMap extends React.Component {
         } else if ( data.progress ) {
           this.setState( { processing: data.progress } );
         }
-    
+
       }
     } );
   }
@@ -116,7 +116,7 @@ class IdahoMap extends React.Component {
       }
     });
     this.setState( { selectedTiles } );
-  } 
+  }
 
   _bboxToTiles( bbox, zoom, buff=0 ) {
     const tiles = [];
@@ -180,7 +180,7 @@ class IdahoMap extends React.Component {
   }
 
   _trackChip( tile, feature ) {
-    const xyz = tile.join( ',' ); 
+    const xyz = tile.join( ',' );
     if ( !this.renderedChips[ xyz ] ) {
       this.renderedChips[ xyz ] = [];
     }
@@ -190,7 +190,7 @@ class IdahoMap extends React.Component {
 
   draw( layer, params ) {
     const { userMinDate, userMaxDate, minDate, maxDate } = this.state;
-  
+
     const ctx = params.canvas.getContext( '2d' );
     ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
 
@@ -209,7 +209,7 @@ class IdahoMap extends React.Component {
       const max = userMaxDate || maxDate;
 
       points.forEach( pnt => {
-        // check min and max date 
+        // check min and max date
         const date = new Date( pnt.properties.acquisitionDate );
         if ( date >= min && date <= max ) {
           this._renderFeature( pnt, ctx, layer._map );
@@ -237,7 +237,8 @@ class IdahoMap extends React.Component {
     });
   }
 
-  sliderChange( values ) {
+  sliderChange( values ) { 
+    // values[0] = user's range begin number. values[1] = the range max - the user's range end number
     const minDate = new Date( this.state.minDate.getTime() );
     const maxDate = new Date( this.state.maxDate.getTime() );
 
@@ -246,13 +247,13 @@ class IdahoMap extends React.Component {
 
     this.setState( { userMinDate: min, userMaxDate: max } );
   }
-  
+
   saveChips( chips ) {
     this.props.comm.send( { method: "save_chips", chips } );
   }
 
   processChips() {
-    const { selectedTiles, selectedDates } = this.state; 
+    const { selectedTiles, selectedDates } = this.state;
     if ( selectedDates.length ) {
       this.props.comm.send( { method: "stitch", chips: this._buildChips( selectedTiles, selectedDates ) } );
     }
@@ -280,8 +281,8 @@ class IdahoMap extends React.Component {
     return chips;
   }
 
-  selectDate( date ){ 
-    const { selectedDates } = this.state; 
+  selectDate( date ){
+    const { selectedDates } = this.state;
     if ( !~selectedDates.indexOf( date ) ) {
       this.setState( { selectedDates: [ ...selectedDates, date ] });
     } else {
@@ -307,8 +308,8 @@ class IdahoMap extends React.Component {
       longitude } = this.state;
 
     const position = [latitude, longitude];
-   
-    let chips = {}; 
+
+    let chips = {};
     if ( selectedTiles.length ) {
       chips = this._buildChips( selectedTiles );
       this.saveChips( chips );
@@ -328,13 +329,13 @@ class IdahoMap extends React.Component {
               { selectedTiles.length && <CanvasLayer type={'selected'} { ...this.props } draw={ this.drawSelected } /> }
             </Map>
             <div className={'footer'}>
-              <Slider 
-                { ...this.props } 
-                minDate={ minDate } 
-                maxDate={ maxDate } 
-                userMinDate={ userMinDate } 
+              <Slider
+                { ...this.props }
+                minDate={ minDate }
+                maxDate={ maxDate }
+                userMinDate={ userMinDate }
                 userMaxDate={ userMaxDate }
-                width={ width } 
+                width={ width }
                 onChange={ this.sliderChange } />
             </div>
           </div>
