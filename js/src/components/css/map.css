@@ -114,3 +114,14 @@
 
 .idahomap .rc-slider-track { background-color: #98c000; }
 .idahomap .rc-slider-handle { border-color: #00a2de; }
+
+.idahomap .error {
+  max-width: 400px;  
+  font-size: 0.83em;
+  overflow-wrap: break-word;
+}
+
+.idahomap .histogram {
+  margin-bottom: -9px;
+  height: 25px;
+}

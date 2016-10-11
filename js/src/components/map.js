@@ -5,6 +5,7 @@ import dispatcher from './dispatcher.js';
 import autobind from 'autobind-decorator';
 import rtree from 'rtree';
 import tilebelt from 'tilebelt';
+import moment from 'moment';
 import Slider from './slider';
 import List from './list';
 
@@ -15,11 +16,13 @@ class IdahoMap extends React.Component {
 
   tree: null
   renderedChips: null
+  footprints: null
 
   constructor( props ) {
     super( props );
     this.tree = rtree( 9 );
     this.renderedChips = {};
+    this.footprints = {};
     this.state = {
       userMinDate: null,
       userMaxDate: null,
@@ -42,6 +45,15 @@ class IdahoMap extends React.Component {
   }
 
   _indexFeatures( features ) {
+    // could probably use reduce to do this...
+    features.forEach( f => {
+      const date = moment( f.properties.acquisitionDate ).startOf('day').toString();
+      if ( !this.footprints[ date ] ) {
+        this.footprints[ date ] = 0;
+      }
+      this.footprints[ date ] += 1;
+    });
+
     this.tree.geoJSON( {
       "type":"FeatureCollection",
       "features": features
@@ -339,6 +351,7 @@ class IdahoMap extends React.Component {
             <div className={'footer'}>
               <Slider
                 { ...this.props }
+                footprints={ this.footprints }
                 minDate={ minDate }
                 maxDate={ maxDate }
                 userMinDate={ userMinDate }

@@ -1,5 +1,6 @@
 import React from 'react';
 import autobind from 'autobind-decorator';
+import Histogram from './histogram';
 
 require('rc-slider/assets/index.css');
 import ReactSlider from 'rc-slider';
@@ -62,7 +63,7 @@ export default class Slider extends React.Component {
   }
 
   render() {
-    const { props: { maxDate, minDate, userMinDate, userMaxDate, onChange }, state: { max, userMin, userMax, play } } = this;
+    const { props: { footprints, maxDate, minDate, userMinDate, userMaxDate, onChange }, state: { max, userMin, userMax, play } } = this;
 
     const displayMin = ( userMinDate || minDate ) ? ( userMinDate || minDate ).toISOString().substring(0, 10) : '';
     const displayMax = ( userMaxDate || maxDate ) ? ( userMaxDate || maxDate ).toISOString().substring(0, 10) : '';
@@ -86,6 +87,9 @@ export default class Slider extends React.Component {
     return (
       <div className='idahomap-slider'>
         <div className={'idahomap-slider-title'}>Set a time range:</div>
+        <div className={'histogram'}>
+          <Histogram footprints={ footprints } maxDate={ maxDate } minDate={ minDate } />
+        </div>
         <div className={'idahomap-slider-bar'}>
           <ReactSlider { ...sliderProps } />
         </div>

@@ -37,6 +37,9 @@ export default function List( props ) {
                 </div>
               </div>
             }
+            <div className="error">
+              { processing && processing.status === "error" && <span>{ processing.text }</span> }
+            </div>
           </div>
         }
       </div>
