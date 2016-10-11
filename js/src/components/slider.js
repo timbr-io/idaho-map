@@ -59,7 +59,7 @@ export default class Slider extends React.Component {
       min = 0;
       max = userMax - userMin;
     }
-    return setTimeout( () => this.props.onChange( [ min, this.state.max - max ] ), 500 );
+    return setTimeout( () => this.props.onChange( [ min, this.state.max - max ] ), 250 );
   }
 
   render() {

@@ -8,8 +8,15 @@ import tilebelt from 'tilebelt';
 import moment from 'moment';
 import Slider from './slider';
 import List from './list';
+import alphaify from 'alphaify';
+
+import { scaleThreshold } from "d3-scale";
 
 require( './css/map.css' );
+
+const color = scaleThreshold()
+  .domain([1, 3, 5, 10, 15, 20, 30, 40, 50])
+  .range(['#4169e1','#3a84f1','#4a9ffa','#6db8fe','#95cfff','#c2e4ff','#f0f8ff']);
 
 @autobind
 class IdahoMap extends React.Component {
@@ -150,12 +157,14 @@ class IdahoMap extends React.Component {
     } else if ( zoom <= 8 ){
       this._renderBox( feature, ctx, map );
     } else if ( zoom > 8 ) {
+
       const coords = feature.geometry.coordinates;
       const bbox = [ ...coords[0][ 0 ], ...coords[0][ 2 ] ];
       const tiles = this._bboxToTiles( bbox, 15 );
       tiles.forEach( tile => {
         const bbox = tilebelt.tileToBBOX( tile );
-        this._renderChip( tile, bbox, feature, ctx, map );
+        //this._renderChip( tile, bbox, feature, ctx, map );
+        this._trackChip( tile, bbox, feature )
       });
     }
   }
@@ -165,8 +174,8 @@ class IdahoMap extends React.Component {
     const dot = map.latLngToContainerPoint([coords[1], coords[0]]);
     ctx.beginPath();
     ctx.arc(dot.x, dot.y, Math.max(3, Math.floor( map.getZoom() * .75 )), 0, Math.PI * 2);
-    ctx.stroke();
     ctx.closePath();
+    ctx.stroke();
   }
 
   _renderBox( feature, ctx, map ) {
@@ -176,27 +185,26 @@ class IdahoMap extends React.Component {
     const lr = map.latLngToContainerPoint([bbox[1], bbox[2]]);
     ctx.beginPath();
     ctx.rect(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
+    //ctx.closePath();
     ctx.stroke();
-    ctx.closePath();
   }
 
-  _renderChip( tile, bbox, feature, ctx, map ) {
+  _renderChip( bbox, ctx, map, count ) {
     const ul = map.latLngToContainerPoint([bbox[3], bbox[0]]);
     const lr = map.latLngToContainerPoint([bbox[1], bbox[2]]);
+    ctx.fillStyle = alphaify( color( count ), .5);
     ctx.beginPath();
     ctx.rect(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
+    ctx.closePath();
     ctx.stroke();
     ctx.fill();
-    ctx.closePath();
-    this._trackChip( tile, feature );
   }
 
-  _trackChip( tile, feature ) {
+  _trackChip( tile, bbox, feature ) {
     const xyz = tile.join( ',' );
     if ( !this.renderedChips[ xyz ] ) {
-      this.renderedChips[ xyz ] = [];
+      this.renderedChips[ xyz ] = [ ];
     }
-    const bbox = tilebelt.tileToBBOX( [ parseInt( tile[ 0 ] ), parseInt( tile[ 1 ] ), 15 ] );
     this.renderedChips[ xyz ].push( { ...feature, properties: { ...feature.properties, xyz, bbox } } );
   }
 
@@ -227,6 +235,12 @@ class IdahoMap extends React.Component {
           this._renderFeature( pnt, ctx, layer._map );
         }
       });
+
+      Object.keys( this.renderedChips ).forEach( xyz => {
+        const tile = xyz.split( ',' );
+        const bbox = tilebelt.tileToBBOX( [ parseInt( tile[ 0 ] ), parseInt( tile[ 1 ] ), 15 ] );
+        this._renderChip( bbox, ctx, layer._map, this.renderedChips[ xyz ].length );
+      })
     }
   }
 

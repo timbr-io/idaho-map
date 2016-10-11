@@ -18,7 +18,7 @@ export default function Histogram( props ) {
     <div className={ 'histogram' } style={{ maxWidth: '625px', margin: 'auto' }} >
       { data.length >= 3 ? 
         <Sparklines height={10} data={ [ ...data ] } >
-          <SparklinesBars style={{ fill: "#00a2de" }} />
+          <SparklinesBars style={{ fill: "#e9e9e9" }} />
         </Sparklines> : ''
       }
     </div>
