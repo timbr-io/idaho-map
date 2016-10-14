@@ -54,7 +54,7 @@ class IdahoMap extends React.Component {
   _indexFeatures( features ) {
     // could probably use reduce to do this...
     features.forEach( f => {
-      const date = moment( f.properties.acquisitionDate ).startOf('day').toString();
+      const date = moment( f.properties.img_datetime_obj_utc.$date ).startOf('day').toString();
       if ( !this.footprints[ date ] ) {
         this.footprints[ date ] = 0;
       }
@@ -75,7 +75,7 @@ class IdahoMap extends React.Component {
     const { features = [] } = this.props;
 
     if ( features.length ) {
-      const dates = features.map( feature => new Date( feature.properties.acquisitionDate ) );
+      const dates = features.map( feature => new Date( feature.properties.img_datetime_obj_utc.$date ) );
       this.props.minDate = new Date( Math.min( dates ) );
       this.props.maxDate = new Date( Math.max( dates ) );
       this._indexFeatures( features );
@@ -106,7 +106,7 @@ class IdahoMap extends React.Component {
 
     const _features = this.state.features.concat( newFeatures );
 
-    const dates = _features.map( feature => new Date( feature.properties.acquisitionDate ) );
+    const dates = _features.map( feature => new Date( feature.properties.img_datetime_obj_utc.$date ) );
     const _min = new Date( Math.min.apply( null, dates ) );
     const _max = new Date( Math.max.apply( null, dates ) );
 
@@ -230,7 +230,7 @@ class IdahoMap extends React.Component {
 
       points.forEach( pnt => {
         // check min and max date
-        const date = new Date( pnt.properties.acquisitionDate );
+        const date = new Date( pnt.properties.img_datetime_obj_utc.$date );
         if ( date >= min && date <= max ) {
           this._renderFeature( pnt, ctx, layer._map );
         }
@@ -291,7 +291,7 @@ class IdahoMap extends React.Component {
     selectedTiles.forEach( tile => {
       if ( this.renderedChips[ tile ] ) {
         this.renderedChips[ tile ].forEach( f => {
-          const date = new Date( f.properties.acquisitionDate ).toISOString().substring( 0, 10 );
+          const date = new Date( f.properties.img_datetime_obj_utc.$date ).toISOString().substring( 0, 10 );
           if ( !selectedDates || ( selectedDates && selectedDates.length && ~selectedDates.indexOf( date ) ) ) {
             if ( !~dates.indexOf( tile + date ) ) {
               dates.push( tile + date );

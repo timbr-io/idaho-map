@@ -22065,7 +22065,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      // could probably use reduce to do this...
 	      features.forEach(function (f) {
-	        var date = (0, _moment2.default)(f.properties.acquisitionDate).startOf('day').toString();
+	        var date = (0, _moment2.default)(f.properties.img_datetime_obj_utc.$date).startOf('day').toString();
 	        if (!_this2.footprints[date]) {
 	          _this2.footprints[date] = 0;
 	        }
@@ -22093,7 +22093,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      if (features.length) {
 	        var dates = features.map(function (feature) {
-	          return new Date(feature.properties.acquisitionDate);
+	          return new Date(feature.properties.img_datetime_obj_utc.$date);
 	        });
 	        this.props.minDate = new Date(Math.min(dates));
 	        this.props.maxDate = new Date(Math.max(dates));
@@ -22129,7 +22129,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var _features = this.state.features.concat(newFeatures);
 
 	      var dates = _features.map(function (feature) {
-	        return new Date(feature.properties.acquisitionDate);
+	        return new Date(feature.properties.img_datetime_obj_utc.$date);
 	      });
 	      var _min = new Date(Math.min.apply(null, dates));
 	      var _max = new Date(Math.max.apply(null, dates));
@@ -22279,7 +22279,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	          points.forEach(function (pnt) {
 	            // check min and max date
-	            var date = new Date(pnt.properties.acquisitionDate);
+	            var date = new Date(pnt.properties.img_datetime_obj_utc.$date);
 	            if (date >= min && date <= max) {
 	              _this6._renderFeature(pnt, ctx, layer._map);
 	            }
@@ -22351,7 +22351,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      selectedTiles.forEach(function (tile) {
 	        if (_this7.renderedChips[tile]) {
 	          _this7.renderedChips[tile].forEach(function (f) {
-	            var date = new Date(f.properties.acquisitionDate).toISOString().substring(0, 10);
+	            var date = new Date(f.properties.img_datetime_obj_utc.$date).toISOString().substring(0, 10);
 	            if (!selectedDates || selectedDates && selectedDates.length && ~selectedDates.indexOf(date)) {
 	              if (!~dates.indexOf(tile + date)) {
 	                dates.push(tile + date);
