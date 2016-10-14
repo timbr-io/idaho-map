@@ -5,6 +5,7 @@ import os, sys
 import rasterio
 from rasterio.merge import merge
 import sh
+from decimal import Decimal
 
 from gbdxtools import Interface
 gbdx = Interface()
@@ -49,32 +50,41 @@ class Map(Component):
             base, '/'.join(map(str,[xyz[2],xyz[0],xyz[1]])), gbdx.gbdx_connection.access_token)
 
     def get_chip(self, name, mid, data, outdir):
+        print name, mid
         url = self.get_chip_url(mid,  data['xyz'].split(','))
-        path = os.path.join(outdir, name+'.tif')
-        wgs84 = os.path.join(outdir, name+'_wgs84.tif')
+        path = os.path.join(outdir, name+'.vrt')
+        #wgs84 = os.path.join(outdir, name+'_wgs84.tif')
     
         if not os.path.exists(path):
-            print 'Retrieving Chip', path
-            r = requests.get(url)
-            if r.status_code == 200:
-                with open(path, 'wb') as the_file:
-                    the_file.write(r.content)
-            else:
-                self.send({ "method": "update", "props": {"progress": { "status": "error", "text": 'There was a problem retrieving IDAHO Image {}'.format(url) }}})
-                r.raise_for_status()
-    
-            # georef the file 
+            print 'Retrieving Chip', path, url 
             bounds = data['bbox']
-            print data['bbox'], data['xyz']
-            opts = ["-of", "GTiff", "-a_ullr", bounds[0], bounds[3], bounds[2], bounds[1], "-a_srs", "EPSG:4326",  path, wgs84]
-            try: 
-              gdal_translate = sh.Command(os.path.join(os.path.dirname(sys.executable), "gdal_translate"))
-            except:
-              gdal_translate = sh.Command("gdal_translate")
+            affine = [bounds[0], (bounds[2] - bounds[0]) / 256, 0.0, bounds[3], 0.0, (bounds[1] - bounds[3]) / 256] 
+            xform = ','.join(['%.15e' % Decimal(x) for x in affine])
+            #print affine
+            data = { 'url':'{}/{}'.format('/vsizip/vsicurl', url), 'geotransform': xform }
+            with open(path, 'w') as vrt:
+                with open(os.path.join(os.path.dirname(__file__), 'vrt_chip_template.txt'), 'r') as template:
+                    vrt.write( template.read() % data )
+              
+            #r = requests.get(url)
+            #if r.status_code == 200:
+            #    with open(path, 'wb') as the_file:
+            #        the_file.write(r.content)
+            #else:
+            #    self.send({ "method": "update", "props": {"progress": { "status": "error", "text": 'There was a problem retrieving IDAHO Image {}'.format(url) }}})
+            #    r.raise_for_status()
+    
+            ## georef the file 
+            #print data['bbox'], data['xyz']
+            #opts = ["-of", "GTiff", "-a_ullr", bounds[0], bounds[3], bounds[2], bounds[1], "-a_srs", "EPSG:4326",  path, wgs84]
+            #try: 
+            #  gdal_translate = sh.Command(os.path.join(os.path.dirname(sys.executable), "gdal_translate"))
+            #except:
+            #  gdal_translate = sh.Command("gdal_translate")
 
-            result = gdal_translate(*opts)
+            #result = gdal_translate(*opts)
 
-        return wgs84
+        return path
 
     def fetch_chips(self, chips=None):
         if chips is None:
@@ -93,10 +103,11 @@ class Map(Component):
                 current += 1 
                 text = 'Fetching {} of {} chips'.format(current, total)
                 self.send({ "method": "update", "props": {"progress": { "status": "processing", "percent": (float(current) / float(total)) * 100, "text": text }}})
-                files.append( self.get_chip('{}_{}'.format(idaho_id, t['xyz'].replace(',','_')), idaho_id, t, img_dir) )
-            self.merge_chips(files, idaho_id)
+                files.append( self.get_chip(t['xyz'].replace(',','_'), idaho_id, t, img_dir) )
+            #self.merge_chips(files, idaho_id)
         
         self.send({ "method": "update", "props": {"progress": { "status": "complete" }}})
+        return files
 
     def merge_chips(self, files, idaho_id):
         print 'merging', files
