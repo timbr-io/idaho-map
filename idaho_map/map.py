@@ -15,6 +15,8 @@ s3 = S3Connection()
 from gbdxtools import Interface
 gbdx = Interface()
 
+import tempfile
+
 class Map(Component):
     module = 'Map'
     features = []
@@ -81,19 +83,17 @@ class Map(Component):
             
         return ((lr[0], ul[0]+1), (lr[1], ul[1]+1))
     
-    def get_tile(self, idaho_id, tile, vrt):
-        bounds = mercantile.bounds(tile)
-        scaleX, scaleY = (bounds.east - bounds.west) / 256, (bounds.south - bounds.north) / 256
+    def get_tile(self, idaho_id, tile, vrt, bucket_name, label):
+        bucket = s3.create_bucket(bucket_name)
+        path = '{}/{}/{}/{}/{}.tif'.format(label, idaho_id, tile[-1], tile[0], tile[1])
+        key = bucket.get_key(path)
+    
+        if key is not None:
+            return 's3://{}/{}'.format(bucket_name, path)
+        else:
+            bounds = mercantile.bounds(tile)
+            scaleX, scaleY = (bounds.east - bounds.west) / 256, (bounds.south - bounds.north) / 256
 
-        img_dir = os.path.join(os.environ.get('HOME','./'), 'gbdx', 'idaho', idaho_id, str(tile[-1]), str(tile[0]))
-        output = img_dir + '/{}.tif'.format(tile[1])
-
-        if not os.path.exists(img_dir):
-             os.makedirs(img_dir)
-
-        if os.path.exists(output):
-            return output
-        else: 
             window = self.pixel_box(vrt, bounds)
             bands = vrt.read(window=window)                
             
@@ -102,10 +102,17 @@ class Map(Component):
             profile['height'] = 256
             profile['width'] = 256
             profile['driver'] = 'GTiff'
-       
-            with rasterio.open(output, 'w', **profile) as dst:
+
+            temp = tempfile.NamedTemporaryFile(suffix=".tif")
+            with rasterio.open(temp.name, 'w', **profile) as dst:
                 dst.write(bands)
-            return output
+        
+            bucket = s3.create_bucket(bucket_name)
+            path = '{}/{}/{}/{}/{}.tif'.format(label, idaho_id, tile[-1], tile[0], tile[1])
+            key = bucket.new_key(path)
+            key.set_contents_from_filename(temp.name)
+            temp.delete
+            return 's3://{}/{}'.format(bucket_name, path)
 
     def fetch_chips(self, chips=None):
         if chips is None:
@@ -124,7 +131,7 @@ class Map(Component):
                     current += 1 
                     text = 'Fetching {} of {} chips'.format(current, total)
                     self.send({ "method": "update", "props": {"progress": { "status": "processing", "percent": (float(current) / float(total)) * 100, "text": text }}})
-                    files.append( self.get_tile(idaho_id, tile, src) )
+                    files.append( self.get_tile(idaho_id, tile, src, 'idaho-vrt-chelm', 'toa') )
 
             self.merge_chips(files, idaho_id)
         

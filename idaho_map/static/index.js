@@ -56423,44 +56423,56 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      return _react2.default.createElement(
 	        'div',
-	        { className: 'idahomap-slider' },
+	        { className: 'row' },
 	        _react2.default.createElement(
 	          'div',
-	          { className: 'idahomap-slider-title' },
-	          'Set a time range:'
-	        ),
-	        _react2.default.createElement(
-	          'div',
-	          { className: 'histogram' },
-	          _react2.default.createElement(_histogram2.default, { footprints: footprints, maxDate: maxDate, minDate: minDate })
-	        ),
-	        _react2.default.createElement(
-	          'div',
-	          { className: 'idahomap-slider-bar' },
-	          _react2.default.createElement(_rcSlider2.default, sliderProps)
-	        ),
-	        _react2.default.createElement(
-	          'div',
-	          { className: 'row idahomap-slider-key' },
+	          { className: 'col-xs-11' },
 	          _react2.default.createElement(
 	            'div',
-	            { className: 'col-xs-6' },
-	            'Start: ',
-	            displayMin
-	          ),
-	          _react2.default.createElement(
-	            'div',
-	            { className: 'col-xs-6 text-right' },
-	            'End: ',
-	            displayMax
+	            { className: 'idahomap-slider' },
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'idahomap-slider-title' },
+	              'Set a time range:'
+	            ),
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'histogram' },
+	              _react2.default.createElement(_histogram2.default, { footprints: footprints, maxDate: maxDate, minDate: minDate })
+	            ),
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'idahomap-slider-bar' },
+	              _react2.default.createElement(_rcSlider2.default, sliderProps)
+	            ),
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'row idahomap-slider-key' },
+	              _react2.default.createElement(
+	                'div',
+	                { className: 'col-xs-6' },
+	                'Start: ',
+	                displayMin
+	              ),
+	              _react2.default.createElement(
+	                'div',
+	                { className: 'col-xs-6 text-right' },
+	                'End: ',
+	                displayMax
+	              )
+	            )
 	          )
 	        ),
 	        _react2.default.createElement(
-	          'button',
-	          { onClick: function onClick(event) {
-	              return _this3.togglePlay(event);
-	            }, className: 'btn btn-primary btn-xs', style: { marginTop: '10px' } },
-	          _react2.default.createElement('i', { className: !play ? 'fa fa-play' : 'fa fa-pause' })
+	          'div',
+	          { className: 'col-xs-1 text-right' },
+	          _react2.default.createElement(
+	            'button',
+	            { onClick: function onClick(event) {
+	                return _this3.togglePlay(event);
+	              }, className: 'btn btn-primary btn-xs', style: { marginTop: '41px' } },
+	            _react2.default.createElement('i', { className: !play ? 'fa fa-play' : 'fa fa-pause' })
+	          )
 	        )
 	      );
 	    }
