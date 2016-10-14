@@ -275,6 +275,7 @@ class IdahoMap extends React.Component {
   }
 
   saveChips( chips ) {
+    console.log( chips )
     this.props.comm.send( { method: "save_chips", chips } );
   }
 

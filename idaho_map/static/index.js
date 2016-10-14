@@ -22328,6 +22328,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'saveChips',
 	    value: function saveChips(chips) {
+	      console.log(chips);
 	      this.props.comm.send({ method: "save_chips", chips: chips });
 	    }
 	  }, {
