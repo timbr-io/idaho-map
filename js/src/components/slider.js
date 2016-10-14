@@ -85,21 +85,27 @@ export default class Slider extends React.Component {
     }
 
     return (
-      <div className='idahomap-slider'>
-        <div className={'idahomap-slider-title'}>Set a time range:</div>
-        <div className={'histogram'}>
-          <Histogram footprints={ footprints } maxDate={ maxDate } minDate={ minDate } />
+      <div className="row">
+        <div className="col-xs-11">
+          <div className='idahomap-slider'>
+            <div className={'idahomap-slider-title'}>Set a time range:</div>
+            <div className={'histogram'}>
+              <Histogram footprints={ footprints } maxDate={ maxDate } minDate={ minDate } />
+            </div>
+            <div className={'idahomap-slider-bar'}>
+              <ReactSlider { ...sliderProps } />
+            </div>
+            <div className={'row idahomap-slider-key'}>
+              <div className={'col-xs-6'}>Start: { displayMin }</div>
+              <div className={'col-xs-6 text-right'}>End: { displayMax }</div>
+            </div>
+          </div>
         </div>
-        <div className={'idahomap-slider-bar'}>
-          <ReactSlider { ...sliderProps } />
+        <div className="col-xs-1 text-right">
+          <button onClick={ ( event ) => this.togglePlay( event ) } className='btn btn-primary btn-xs' style={{ marginTop: '10px' }}>
+            <i className={ !play ? 'fa fa-play' : 'fa fa-pause' }></i>
+          </button>
         </div>
-        <div className={'row idahomap-slider-key'}>
-          <div className={'col-xs-6'}>Start: { displayMin }</div>
-          <div className={'col-xs-6 text-right'}>End: { displayMax }</div>
-        </div>
-        <button onClick={ ( event ) => this.togglePlay( event ) } className='btn btn-primary btn-xs' style={{ marginTop: '10px' }}>
-          <i className={ !play ? 'fa fa-play' : 'fa fa-pause' }></i>
-        </button>
       </div>
     );
   }
