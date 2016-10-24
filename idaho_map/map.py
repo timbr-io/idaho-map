@@ -10,7 +10,7 @@ import mercantile
 import json
 
 from boto.s3.connection import S3Connection
-s3 = S3Connection()
+s3 = S3Connection(profile_name='dg')
 
 from gbdxtools import Interface
 gbdx = Interface()
@@ -101,37 +101,110 @@ class Map(Component):
             
         return ((lr[0], ul[0]+1), (lr[1], ul[1]+1))
     
-    def get_tile(self, idaho_id, tile, vrt, bucket_name, label):
-        bucket = s3.create_bucket(bucket_name)
-        path = '{}/{}/{}/{}/{}.tif'.format(label, idaho_id, tile[-1], tile[0], tile[1])
-        key = bucket.get_key(path)
+    #def get_tile(self, idaho_id, tile, vrt, bucket_name, label):
+    #    bucket = s3.get_bucket(bucket_name)
+    #    path = '{}/{}/{}/{}/{}.tif'.format(label, idaho_id, tile[-1], tile[0], tile[1])
+    #    key = bucket.get_key(path)
+    #    if key is not None:
+    #        return 's3://{}/{}'.format(bucket_name, path)
+    #    else:
+    #        bounds = mercantile.bounds(tile)
+    #        scaleX, scaleY = (bounds.east - bounds.west) / 256, (bounds.south - bounds.north) / 256
+
+    #        print bounds
+    #        #window = self.pixel_box(vrt, bounds)
+    #        window = vrt.window(*bounds)
+    #        print window
+
+    #        out_kwargs = vrt.meta.copy()
+    #        out_kwargs.update({
+    #            'driver': 'GTIFF',
+    #            'height': 256, #window[0][1] - window[0][0],
+    #            'width': 256, #window[1][1] - window[1][0],
+    #            'transform': vrt.window_transform(window)
+    #        })
+    #        print out_kwargs
+
+    #        temp = tempfile.NamedTemporaryFile(suffix=".tif")
+    #        with rasterio.open(temp.name, 'w', **out_kwargs) as out:
+    #            print 'OUT', out.bounds
+    #            out.write(vrt.read(1))#vrt.read(window=window)) 
+    #        
+    #        #profile = vrt.profile
+    #        #profile['transform'] = (bounds.east, scaleX, 0.0, bounds.north, 0.0, scaleY)
+    #        #profile['height'] = 256
+    #        #profile['width'] = 256
+    #        #profile['driver'] = 'GTiff'
+
+    #        #temp = tempfile.NamedTemporaryFile(suffix=".tif")
+    #        #with rasterio.open(temp.name, 'w', **profile) as dst:
+    #        #    dst.write(bands)
+    #        path = '{}/{}/{}/{}/{}.tif'.format(label, idaho_id, tile[-1], tile[0], tile[1])
+    #        key = bucket.new_key(path)
+    #        key.set_contents_from_filename(temp.name)
+    #        temp.delete
+    #        return 's3://{}/{}'.format(bucket_name, path)
+
+    def get_chip_url(self, mid, xyz):
+        base = "http://idaho.geobigdata.io/v1/tile/idaho-images/{}".format(mid)
+        return "{}/{}?bands=0,1,2,3,4,5,6,7&format=tif&token={}".format(
+            base, '/'.join(map(str,[xyz[2],xyz[0],xyz[1]])), gbdx.gbdx_connection.access_token)
+
+    def get_chip(self, name, mid, data, outdir):
+        url = self.get_chip_url(mid,  data['xyz'].split(','))
+        path = os.path.join(outdir, name+'.tif')
+        wgs84 = os.path.join(outdir, name+'_wgs84.tif')
     
-        if key is not None:
-            return 's3://{}/{}'.format(bucket_name, path)
-        else:
-            bounds = mercantile.bounds(tile)
-            scaleX, scaleY = (bounds.east - bounds.west) / 256, (bounds.south - bounds.north) / 256
+        if not os.path.exists(path):
+            print 'Retrieving Chip', path
+            r = requests.get(url)
+            if r.status_code == 200:
+                with open(path, 'wb') as the_file:
+                    the_file.write(r.content)
+            else:
+                self.send({ "method": "update", "props": {"progress": { "status": "error", "text": 'There was a problem retrieving IDAHO Image {}'.format(url) }}})
+                r.raise_for_status()
+    
+            # georef the file 
+            bounds = data['bbox']
+            print data['bbox'], data['xyz']
+            opts = ["-of", "GTiff", "-a_ullr", bounds[0], bounds[3], bounds[2], bounds[1], "-a_srs", "EPSG:4326",  path, wgs84]
+            try: 
+              gdal_translate = sh.Command(os.path.join(os.path.dirname(sys.executable), "gdal_translate"))
+            except:
+              gdal_translate = sh.Command("gdal_translate")
 
-            window = self.pixel_box(vrt, bounds)
-            bands = vrt.read(window=window)                
-            
-            profile = vrt.profile
-            profile['transform'] = (bounds.east, scaleX, 0.0, bounds.north, 0.0, scaleY)
-            profile['height'] = 256
-            profile['width'] = 256
-            profile['driver'] = 'GTiff'
+            result = gdal_translate(*opts)
 
-            temp = tempfile.NamedTemporaryFile(suffix=".tif")
-            with rasterio.open(temp.name, 'w', **profile) as dst:
-                dst.write(bands)
-        
-            bucket = s3.create_bucket(bucket_name)
-            path = '{}/{}/{}/{}/{}.tif'.format(label, idaho_id, tile[-1], tile[0], tile[1])
-            key = bucket.new_key(path)
-            key.set_contents_from_filename(temp.name)
-            temp.delete
-            return 's3://{}/{}'.format(bucket_name, path)
+        return wgs84
 
+
+    #def fetch_chips(self, chips=None):
+    #    if chips is None:
+    #        chips = self.chips
+    #    self.merged = []
+    #    total = len(sum(chips.values(), []))
+    #    current = 0
+    #    for idaho_id in chips.keys():
+    #        img_dir = os.path.join(os.environ.get('HOME','./'), 'gbdx', 'idaho', idaho_id)
+    #        url = 'http://idaho.timbr.io/{}/TOAReflectance/2.vrt'.format( idaho_id )
+    #        print url
+    #        vrt = requests.get(url).text
+    #        print 'got a vrt'
+    #        with rasterio.open(vrt) as src:
+    #            print src.bounds
+    #            files = []
+    #            for i, chip in enumerate(chips[idaho_id]):
+    #                tile = map(int, chip['xyz'].split(','))
+    #                current += 1 
+    #                text = 'Fetching {} of {} chips'.format(current, total)
+    #                self.send({ "method": "update", "props": {"progress": { "status": "processing", "percent": (float(current) / float(total)) * 100, "text": text }}})
+    #                files.append( self.get_tile(idaho_id, tile, src, 'idaho-lambda', 'toa') )
+    #        print files, idaho_id
+    #        self.merge_chips(files, idaho_id)
+    #    
+    #    self.send({ "method": "update", "props": {"progress": { "status": "complete" }}})
+    #    return files
     def fetch_chips(self, chips=None):
         if chips is None:
             chips = self.chips
@@ -140,21 +213,20 @@ class Map(Component):
         current = 0
         for idaho_id in chips.keys():
             img_dir = os.path.join(os.environ.get('HOME','./'), 'gbdx', 'idaho', idaho_id)
-            url = 'http://idaho.timbr.io/{}/TOAReflectance/0.vrt'.format( idaho_id )
-            vrt = requests.get(url).text
-            with rasterio.open(vrt) as src:
-                files = []
-                for i, chip in enumerate(chips[idaho_id]):
-                    tile = map(int, chip['xyz'].split(','))
-                    current += 1 
-                    text = 'Fetching {} of {} chips'.format(current, total)
-                    self.send({ "method": "update", "props": {"progress": { "status": "processing", "percent": (float(current) / float(total)) * 100, "text": text }}})
-                    files.append( self.get_tile(idaho_id, tile, src, 'idaho-lambda', 'toa') )
 
+            if not os.path.exists(img_dir):
+                os.makedirs(img_dir)
+
+            files = []
+            for i, t in enumerate(chips[idaho_id]):
+                current += 1 
+                text = 'Fetching {} of {} chips'.format(current, total)
+                self.send({ "method": "update", "props": {"progress": { "status": "processing", "percent": (float(current) / float(total)) * 100, "text": text }}})
+                files.append( self.get_chip('{}_{}'.format(idaho_id, t['xyz'].replace(',','_')), idaho_id, t, img_dir) )
             self.merge_chips(files, idaho_id)
         
         self.send({ "method": "update", "props": {"progress": { "status": "complete" }}})
-        return files
+
 
     def merge_chips(self, files, idaho_id):
         print 'merging', files

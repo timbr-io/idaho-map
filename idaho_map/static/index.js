@@ -22416,6 +22416,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var chips = {};
 	      if (selectedTiles.length) {
 	        chips = this._buildChips(selectedTiles);
+	        console.log('CHIPS', chips);
 	        this.saveChips(chips);
 	      }
 

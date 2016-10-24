@@ -346,6 +346,7 @@ class IdahoMap extends React.Component {
     let chips = {};
     if ( selectedTiles.length ) {
       chips = this._buildChips( selectedTiles );
+      console.log('CHIPS', chips);
       this.saveChips( chips );
     }
 
