@@ -16,6 +16,7 @@ from gbdxtools import Interface
 gbdx = Interface()
 
 import tempfile
+import threading
 
 class Map(Component):
     module = 'Map'
@@ -24,8 +25,25 @@ class Map(Component):
 
     def __init__(self, **kwargs):
         super(Map, self).__init__(target_name='idaho.map', props=kwargs.get('props', {}))
-        self.layers = self.props.get('layers', [])
+        self.stream_config = self.props.get('stream', {})
         self.on_msg(self._handle_msg)
+
+    def idaho_stream(self, config={"fromDate": "2015-01-01", "toDate": "2015-06-02", "delay":"0.1", "bbox": "-24.521484,21.983801,43.154297,55.002826"}):
+        r = requests.post('http://idaho.timbr.io/filter', json=config, stream=True)
+        g = r.iter_lines()
+        return g
+
+    def start(self, config=None):
+        if config is None:
+            config = self.stream_config
+        stream = self.idaho_stream(config=config)
+    
+        def fn():
+            for msg in stream:
+                self.add_features([json.loads(msg)])
+        
+        thread = threading.Thread(target=fn)
+        thread.start()
 
     def add_features(self, features):
         self.send({ "method": "update", "props": {"features": features}})
@@ -122,7 +140,7 @@ class Map(Component):
         current = 0
         for idaho_id in chips.keys():
             img_dir = os.path.join(os.environ.get('HOME','./'), 'gbdx', 'idaho', idaho_id)
-            url = 'http://idaho.timbr.io/{}/toa/0.vrt'.format( idaho_id )
+            url = 'http://idaho.timbr.io/{}/TOAReflectance/0.vrt'.format( idaho_id )
             vrt = requests.get(url).text
             with rasterio.open(vrt) as src:
                 files = []
@@ -131,7 +149,7 @@ class Map(Component):
                     current += 1 
                     text = 'Fetching {} of {} chips'.format(current, total)
                     self.send({ "method": "update", "props": {"progress": { "status": "processing", "percent": (float(current) / float(total)) * 100, "text": text }}})
-                    files.append( self.get_tile(idaho_id, tile, src, 'idaho-vrt-chelm', 'toa') )
+                    files.append( self.get_tile(idaho_id, tile, src, 'idaho-lambda', 'toa') )
 
             self.merge_chips(files, idaho_id)
         
