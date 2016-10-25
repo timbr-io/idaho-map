@@ -34,9 +34,7 @@ setup(name='idaho-map',
       data_files=[
         ('share/jupyter/nbextensions/idaho_map', [
             'idaho_map/static/index.js'
-        ]),
-        ('', ['*.txt'])
-      ],
+        ])],
       install_requires=[
           "ipython",
           "jupyter-react",
