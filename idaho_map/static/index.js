@@ -89,6 +89,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    link.href = "//cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.3.2/leaflet.draw.css";
 	    document.getElementsByTagName("head")[0].appendChild(link);
 
+	    //var script = document.createElement( 'script' );
+	    //script.src = 'http://localhost:3001/notebook.js';
+	    //document.getElementsByTagName( 'head' )[0].appendChild( script );
+
 	    _jupyterReactJs2.default.init(Jupyter, events, 'idaho.map', { components: _components2.default, on_update: on_update, save: false });
 	  });
 	}
