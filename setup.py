@@ -11,7 +11,7 @@ class develop(_develop):
     def run(self):
         _develop.run(self)
         install_nbextension(extension_dir, symlink=True,
-                            overwrite=True, user=False, destination="idaho_map")
+                            overwrite=True, user=True, destination="idaho_map")
         cm = ConfigManager()
         cm.update('notebook', {"load_extensions": {"idaho_map/index": True } })
 
@@ -34,9 +34,7 @@ setup(name='idaho-map',
       data_files=[
         ('share/jupyter/nbextensions/idaho_map', [
             'idaho_map/static/index.js'
-        ]), 
-        ('', '*.txt')
-      ],
+        ])],
       install_requires=[
           "ipython",
           "jupyter-react",
